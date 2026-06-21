@@ -1,0 +1,765 @@
+[
+  {
+    "id": "xcmg-XE17U",
+    "brand": "XCMG",
+    "name": "XCMG XE17U",
+    "model": "XE17U",
+    "category": "excavator",
+    "subCategory": "mini-excavator",
+    "source": "xcmg",
+    "image": "/uploads/products/img-0870-1782012903984-1.jpg",
+    "images": [
+      "/uploads/products/img-0870-1782012903984-1.jpg"
+    ],
+    "description": "XE17U-微型挖掘机-徐工官网",
+    "specifications": {
+      "项目": "单位 XE17U",
+      "操作重量": "Kg 1795",
+      "铲斗容量": "m³ 0.04",
+      "发动机额定功率": "kW/rpm 11.8/2300",
+      "铲斗挖掘力": "kN 16",
+      "最大挖掘半径": "mm 3900"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE35U",
+    "brand": "XCMG",
+    "name": "XCMG XE35U",
+    "model": "XE35U",
+    "category": "excavator",
+    "subCategory": "mini-excavator",
+    "source": "xcmg",
+    "image": "/uploads/products/img-3866-1782012971519-1.jpg",
+    "images": [
+      "/uploads/products/img-3866-1782012971519-1.jpg"
+    ],
+    "description": "XE35U-微型挖掘机-徐工官网",
+    "specifications": {
+      "项目": "单位 XE35U",
+      "操作重量": "Kg 3875kg",
+      "铲斗容量": "m³ 0.12",
+      "发动机额定功率": "kW/rpm 18.2",
+      "铲斗挖掘力": "kN 30",
+      "最大挖掘半径": "mm 5300"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE60GA PRO",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "id": "xcmg-XE60GA-PRO",
+    "brand": "XCMG",
+    "name": "XCMG XE60GA PRO",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE60GA-PRO-cover.png",
+    "images": [
+      "/uploads/xcmg/XE60GA-PRO-cover.png"
+    ],
+    "description": "XCMG XE60GA PRO crawler excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE75GA",
+    "brand": "XCMG",
+    "name": "XCMG XE75GA",
+    "model": "XE75GA",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE75GA-1.png",
+    "images": [
+      "/uploads/xcmg/XE75GA-1.png"
+    ],
+    "description": "XE75GA-小型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 7700",
+      "铲斗容量": "m³ 0.33",
+      "发动机额定功率": "kW/rpm 336",
+      "铲斗挖掘力": "kN 57"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE105GA",
+    "brand": "XCMG",
+    "name": "XCMG XE105GA",
+    "model": "XE105GA",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE105GA-1.jpg",
+    "images": [
+      "/uploads/xcmg/XE105GA-1.jpg"
+    ],
+    "description": "XE105GA-小型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 10450",
+      "铲斗容量": "m³ 0.45",
+      "发动机额定功率": "kW/rpm 53.7/2100",
+      "铲斗挖掘力": "kN 65"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE135GA",
+    "brand": "XCMG",
+    "name": "XCMG XE135GA",
+    "model": "XE135GA",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE135GA-1.jpg",
+    "images": [
+      "/uploads/xcmg/XE135GA-1.jpg"
+    ],
+    "description": "XE135GA-中型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 13500",
+      "铲斗容量": "m³ 0.32-0.61",
+      "发动机额定功率": "kW/rpm 89/2200",
+      "铲斗挖掘力": "kN 99"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE155GA",
+    "brand": "XCMG",
+    "name": "XCMG XE155GA",
+    "model": "XE155GA",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE155GA-1.jpg",
+    "images": [
+      "/uploads/xcmg/XE155GA-1.jpg"
+    ],
+    "description": "XE155GA-中型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 14600",
+      "铲斗容量": "m³ 0.32-0.72",
+      "发动机额定功率": "kW/rpm 89/2200",
+      "铲斗挖掘力": "kN 107"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE200GA",
+    "brand": "XCMG",
+    "name": "XCMG XE200GA",
+    "model": "XE200GA",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE200GA-1.png",
+    "images": [
+      "/uploads/xcmg/XE200GA-1.png"
+    ],
+    "description": "XE200GA-中型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 21200",
+      "铲斗容量": "m³ 0.9-1.0",
+      "发动机额定功率": "kW/rpm 125/2200",
+      "铲斗挖掘力": "kN 149"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE205GA",
+    "brand": "XCMG",
+    "name": "XCMG XE205GA",
+    "model": "XE205GA",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE205GA-1.png",
+    "images": [
+      "/uploads/xcmg/XE205GA-1.png"
+    ],
+    "description": "XE205GA-中型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 21800",
+      "铲斗容量": "m³ 1.0-1.1",
+      "发动机额定功率": "kW/rpm 129/2200",
+      "铲斗挖掘力": "kN 157"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE215G",
+    "brand": "XCMG",
+    "name": "XCMG XE215G",
+    "model": "XE215G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE215G-1.jpg",
+    "images": [
+      "/uploads/xcmg/XE215G-1.jpg"
+    ],
+    "description": "XE215G-中型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 22500",
+      "铲斗容量": "m³ 0.8-1.3",
+      "发动机额定功率": "kW/rpm 129/2000",
+      "铲斗挖掘力": "kN 165"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE245G",
+    "brand": "XCMG",
+    "name": "XCMG XE245G",
+    "model": "XE245G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE245G-1.png",
+    "images": [
+      "/uploads/xcmg/XE245G-1.png"
+    ],
+    "description": "XE245G-中型挖掘机-徐工官网",
+    "specifications": {
+      "操作重量": "Kg 25800",
+      "铲斗容量": "m³ 0.9-1.5",
+      "发动机额定功率": "kW/rpm 129/2000",
+      "铲斗挖掘力": "kN 172/185"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE335G",
+    "brand": "XCMG",
+    "name": "XCMG XE335G",
+    "model": "XE335G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/products/img-4836-1782012984297-1.jpg",
+    "images": [
+      "/uploads/products/img-4836-1782012984297-1.jpg"
+    ],
+    "description": "XCMG XE335G crawler excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Trusted XCMG distributor"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE370G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "id": "xcmg-XE370G",
+    "brand": "XCMG",
+    "name": "XCMG XE370G",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE370G-cover.jpg",
+    "images": [
+      "/uploads/xcmg/XE370G-cover.jpg"
+    ],
+    "description": "XCMG XE370G crawler excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XE380G",
+    "brand": "XCMG",
+    "name": "XCMG XE380G",
+    "model": "XE380G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "source": "xcmg",
+    "image": "/uploads/products/img-4775-1782012992844-1.jpg",
+    "images": [
+      "/uploads/products/img-4775-1782012992844-1.jpg"
+    ],
+    "description": "XCMG XE380G crawler excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Trusted XCMG distributor"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE390G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "id": "xcmg-XE390G",
+    "brand": "XCMG",
+    "name": "XCMG XE390G",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE390G-cover.jpg",
+    "images": [
+      "/uploads/xcmg/XE390G-cover.jpg"
+    ],
+    "description": "XCMG XE390G crawler excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE500G",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "id": "xcmg-XE500G",
+    "brand": "XCMG",
+    "name": "XCMG XE500G",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE500G-cover.png",
+    "images": [
+      "/uploads/xcmg/XE500G-cover.png"
+    ],
+    "description": "XE500G XE500G Operating weight ( kg ): 49700 Bucket capacity ( m³ ): 2.8 Rated power ( kW ): 343 Operating weight ( kg ): 49700 Bucket capacity ( m³ ): 2.8 Rated power ( kW ): 343 Widely used for infrastructure, water conservancy projects, real estate, mine construction and other large-scale excavation and loading projects. New Pressurized Cabin, comprehensive improvement in comfort and safety, with high power automatic hot and cold AC system, enlarged suspension seat, 8-inch instrument panel with touch screen. Customized Cummins X12 low-speed and high-torque engine, constant power output, powerful and reliable. Positive Flow Control System, fully electronically controlled large-displacement",
+    "specifications": {
+      "Source": "Product brochure",
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE600GA PRO",
+    "category": "excavator",
+    "subCategory": "crawler-excavator",
+    "id": "xcmg-XE600GA-PRO",
+    "brand": "XCMG",
+    "name": "XCMG XE600GA PRO",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE600GA-PRO-cover.png",
+    "images": [
+      "/uploads/xcmg/XE600GA-PRO-cover.png"
+    ],
+    "description": "XCMG XE600GA PRO crawler excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE85GW",
+    "category": "excavator",
+    "subCategory": "wheel-excavator",
+    "id": "xcmg-XE85GW",
+    "brand": "XCMG",
+    "name": "XCMG XE85GW",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE85GW-cover.png",
+    "images": [
+      "/uploads/xcmg/XE85GW-cover.png"
+    ],
+    "description": "XCMG XE85GW wheel excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE75W",
+    "category": "excavator",
+    "subCategory": "wheel-excavator",
+    "id": "xcmg-XE75W",
+    "brand": "XCMG",
+    "name": "XCMG XE75W",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE75W-cover.png",
+    "images": [
+      "/uploads/xcmg/XE75W-cover.png"
+    ],
+    "description": "XCMG XE75W wheel excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XE155GW",
+    "category": "excavator",
+    "subCategory": "wheel-excavator",
+    "id": "xcmg-XE155GW",
+    "brand": "XCMG",
+    "name": "XCMG XE155GW",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XE155GW-cover.png",
+    "images": [
+      "/uploads/xcmg/XE155GW-cover.png"
+    ],
+    "description": "XCMG XE155GW wheel excavator. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XC7-SR07B",
+    "brand": "XCMG",
+    "name": "XCMG XC7-SR07B",
+    "model": "XC7-SR07B",
+    "category": "loader",
+    "subCategory": "skid-steer-loader",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XC7-SR07B-1.png",
+    "images": [
+      "/uploads/xcmg/XC7-SR07B-1.png",
+      "/uploads/xcmg/XC7-SR07B-2.png",
+      "/uploads/xcmg/XC7-SR07B-3.png",
+      "/uploads/xcmg/XC7-SR07B-4.png"
+    ],
+    "description": "Factory-new XCMG XC7-SR07B skid steer loader for construction, landscaping and material handling applications.",
+    "specifications": {
+      "Rated Power": "36.8 kW",
+      "Operating Weight": "2,950 kg",
+      "Rated Load": "890 kg",
+      "Bucket Capacity": "0.45 m³"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XC870K",
+    "category": "loader",
+    "subCategory": "backhoe-loader",
+    "id": "xcmg-XC870K",
+    "brand": "XCMG",
+    "name": "XCMG XC870K",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XC870K-cover.jpg",
+    "images": [
+      "/uploads/xcmg/XC870K-cover.jpg"
+    ],
+    "description": "This contract consists of two pages, this page is second page. —— Lucky machinery Hefei Lucky Engineering Machinery Trading Co., LTD Proforma Invoice Proforma Invoice Number: LM-202 6 - 0319 BJ Manufacturer: Hefei Lucky Engineering Machinery Trading Co., LTD Address: H2590, Cross-border E-commerce Industrial Park, 1201 Huafeng Road, Shushan Economic Development Zone, Hefei City ,Anhui Province, China Email: luckymachinery001@gmail.com Whatsapp: +86 136 0565 0405 Buyer: Ngothando Investment cc Tel: +264813954310 Email ： nghelo810@gmail.com Address ： PO Box 2299 Oshakati NO DESCRIPTION QT Y UNIT PRICE (FOB) SUBCATEGORY TOTAL PRICE (FOB) 1 XCMG XC870K 1 47 , 000 USD 47 , 000 USD Ⅰ TOTAL AMOUNT ",
+    "specifications": {
+      "Source": "Product brochure",
+      "Image Source": "Trusted XCMG distributor"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XC938",
+    "brand": "XCMG",
+    "name": "XCMG XC938",
+    "model": "XC938",
+    "category": "loader",
+    "subCategory": "wheel-loader",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XC938-1.png",
+    "images": [
+      "/uploads/xcmg/XC938-1.png"
+    ],
+    "description": "XC938",
+    "specifications": {},
+    "localOnly": true
+  },
+  {
+    "model": "XC958",
+    "category": "loader",
+    "subCategory": "wheel-loader",
+    "id": "xcmg-XC958",
+    "brand": "XCMG",
+    "name": "XCMG XC958",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XC958-cover.png",
+    "images": [
+      "/uploads/xcmg/XC958-cover.png"
+    ],
+    "description": "X C 9 5 8 I I I w h e e l l o a d e r R a t e d l o a d 5 8 0 0 k g 2 5 5 C o n f l i c t r a n g e . - . 0 m ³ R a t e d p o w e r 1 7 0 k W X C M G , X C M G – Y o u r P a t h t o S u c c e s s I I I U n i t A d d r e s s : N o . 2 6 , T o l a n M o u n t a i n R o a d , E c o n o m i c a n d T e c h n o l o g i c a l D e v e l o p m e n t Z o n e , X u z h o u C i t y , J i a n g s u P r o v i n c e Z i p c o d e : 2 2 1 0 0 1 C u s t o m e r s e r v i c e p h o n e : 4 0 0 - 1 1 0 - 9 9 9 9 A d d : N o . 2 6 , T u o l a n s h a n R o a d , E c o n o m i c a n d T e c h n o l o g i c a l D e v e l o p m e n t Z o n e , X u z h o u C i t y , J i a n g s u P r o v i n c e Z i p c o d e : 2 ",
+    "specifications": {
+      "Source": "Product brochure",
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "ZL50GN",
+    "category": "loader",
+    "subCategory": "wheel-loader",
+    "id": "xcmg-ZL50GN",
+    "brand": "XCMG",
+    "name": "XCMG ZL50GN",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/ZL50GN-cover.jpg",
+    "images": [
+      "/uploads/xcmg/ZL50GN-cover.jpg"
+    ],
+    "description": "OUTLINE DIMENSIONS MAIN SPECIFICATIONS XCMG EARTH MOVING MACHINERY BUSINESS UNIT 20170329 WHEEL LOADER No further information of sample contents, product structure and configuration parameters updates. There maybe some difference between sample books and material objects.Please kind prevail. Rated operating load Bucket capacity Machine weight Dump clearance at maximum lift Reach at maximum lift Wheel base Tread Max.breakout force Max.horse power Hydraulic cycle time-raise Total hydraulic cycle time Min. turning radius over tyres Articulation angle Gradeability Tyre size Overall machine dimension L×W×H Model Rated Power 5000 2.5～4.5 17500±300 3100～3780 1100～1220 3300 2250 175±5 160±5 ≤6 ≤10.5",
+    "specifications": {
+      "Source": "Product brochure",
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "LW300KN",
+    "category": "loader",
+    "subCategory": "wheel-loader",
+    "id": "xcmg-LW300KN",
+    "brand": "XCMG",
+    "name": "XCMG LW300KN",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/LW300KN-cover.jpg",
+    "images": [
+      "/uploads/xcmg/LW300KN-cover.jpg"
+    ],
+    "description": "XCMG LW300KN wheel loader. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Trusted XCMG distributor"
+    },
+    "localOnly": true
+  },
+  {
+    "model": "XS103J",
+    "category": "roller",
+    "subCategory": "single-drum-roller",
+    "id": "xcmg-XS103J",
+    "brand": "XCMG",
+    "name": "XCMG XS103J",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XS103J-cover.jpg",
+    "images": [
+      "/uploads/xcmg/XS103J-cover.jpg"
+    ],
+    "description": "XCMG XS103J single drum roller. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Trusted XCMG distributor"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XS163J",
+    "brand": "XCMG",
+    "name": "XCMG XS163J",
+    "model": "XS163J",
+    "category": "roller",
+    "subCategory": "single-drum-roller",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XS163J-1.png",
+    "images": [
+      "/uploads/xcmg/XS163J-1.png"
+    ],
+    "description": "XS163J",
+    "specifications": {},
+    "localOnly": true
+  },
+  {
+    "model": "XS203J",
+    "category": "roller",
+    "subCategory": "single-drum-roller",
+    "id": "xcmg-XS203J",
+    "brand": "XCMG",
+    "name": "XCMG XS203J",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XS203J-cover.jpg",
+    "images": [
+      "/uploads/xcmg/XS203J-cover.jpg"
+    ],
+    "description": "Ref. XS203J_DS_EN_V2026.01",
+    "specifications": {
+      "Source": "Product brochure",
+      "Image Source": "Official XCMG website"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-XP163",
+    "brand": "XCMG",
+    "name": "XCMG XP163",
+    "model": "XP163",
+    "category": "roller",
+    "subCategory": "pneumatic-roller",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/XP163-1.png",
+    "images": [
+      "/uploads/xcmg/XP163-1.png"
+    ],
+    "description": "XP163",
+    "specifications": {},
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-GR180",
+    "brand": "XCMG",
+    "name": "XCMG GR180",
+    "model": "GR180",
+    "category": "grader",
+    "subCategory": "motor-grader",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/GR180-1.png",
+    "images": [
+      "/uploads/xcmg/GR180-1.png"
+    ],
+    "description": "GR180",
+    "specifications": {},
+    "localOnly": true
+  },
+  {
+    "id": "xcmg-GR215",
+    "brand": "XCMG",
+    "name": "XCMG GR215",
+    "model": "GR215",
+    "category": "grader",
+    "subCategory": "motor-grader",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/GR215-1.png",
+    "images": [
+      "/uploads/xcmg/GR215-1.png"
+    ],
+    "description": "GR215",
+    "specifications": {},
+    "localOnly": true
+  },
+  {
+    "model": "GR2405",
+    "category": "grader",
+    "subCategory": "motor-grader",
+    "id": "xcmg-GR2405",
+    "brand": "XCMG",
+    "name": "XCMG GR2405",
+    "source": "xcmg",
+    "image": "/uploads/xcmg/GR2405-cover.jpg",
+    "images": [
+      "/uploads/xcmg/GR2405-cover.jpg"
+    ],
+    "description": "XCMG GR2405 motor grader. Product image and detailed specifications are pending exact-model verification.",
+    "specifications": {
+      "Image Source": "Trusted XCMG distributor"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-0-8m3",
+    "brand": "XCMG",
+    "name": "0.8 m³ Self Loading Concrete Mixer",
+    "model": "0.8m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/0-8m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/0-8m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 0.8 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "0.8 m³",
+      "Dimensions": "4576*2510*1880 mm"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-1-5m3",
+    "brand": "XCMG",
+    "name": "1.5 m³ Self Loading Concrete Mixer",
+    "model": "1.5m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/1-5m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/1-5m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 1.5 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "1.5 m³",
+      "Dimensions": "6340*1857*2920 mm"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-2m3",
+    "brand": "XCMG",
+    "name": "2 m³ Self Loading Concrete Mixer",
+    "model": "2m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/2m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/2m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 2 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "2 m³",
+      "Dimensions": "7040*2695*3001 mm"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-2-6m3",
+    "brand": "XCMG",
+    "name": "2.6 m³ Self Loading Concrete Mixer",
+    "model": "2.6m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/2-6m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/2-6m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 2.6 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "2.6 m³",
+      "Curb Weight": "6500 kg",
+      "Dimensions": "7040*2732*3189 mm"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-3-5m3",
+    "brand": "XCMG",
+    "name": "3.5 m³ Self Loading Concrete Mixer",
+    "model": "3.5m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/3-5m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/3-5m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 3.5 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "3.5 m³",
+      "Dimensions": "7600*2872*3374 mm"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-4m3",
+    "brand": "XCMG",
+    "name": "4 m³ Self Loading Concrete Mixer",
+    "model": "4m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/4m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/4m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 4 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "4 m³",
+      "Dimensions": "7850*2872*3374 mm"
+    },
+    "localOnly": true
+  },
+  {
+    "id": "pdf-mixer-5m3",
+    "brand": "XCMG",
+    "name": "5 m³ Self Loading Concrete Mixer",
+    "model": "5m3",
+    "category": "mixer",
+    "subCategory": "self-loading-concrete-mixer",
+    "source": "pdf",
+    "image": "/uploads/self-loading-mixer/5m3-1.png",
+    "images": [
+      "/uploads/self-loading-mixer/5m3-1.png"
+    ],
+    "description": "Self-loading concrete mixer with 5 m³ rated discharge capacity, combining loading, mixing, transport and discharge in one machine.",
+    "specifications": {
+      "Rated Capacity": "5 m³",
+      "Dimensions": "8878*3050*3640 mm"
+    },
+    "localOnly": true
+  }
+]

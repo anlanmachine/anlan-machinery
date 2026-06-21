@@ -1,0 +1,1 @@
+import {NextResponse} from 'next/server';export async function POST(){return NextResponse.json({error:'Configure OPENAI_API_KEY and implement a reviewed generation queue before enabling AI publishing.'},{status:501})}
