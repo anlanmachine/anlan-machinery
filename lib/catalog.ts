@@ -1,11 +1,11 @@
 import {readFile} from 'fs/promises';import path from 'path';import type {CatalogCategory} from './catalog-config';import {readCollection,slugify} from './cms-store';
 export type CatalogProduct={id:string;brand:string;name:string;model:string;category:CatalogCategory;subCategory:string;source?:'xcmg'|'pdf'|'manual';image:string;images:string[];description:string;shortDescription?:string;specifications:Record<string,string>|string;engine?:string;operatingWeight?:string;bucketCapacity?:string;ratedPower?:string;dimension?:string;fobPrice?:string;moq?:string;deliveryTime?:string;video?:string;pdfBrochure?:string;seoTitle?:string;seoDescription?:string;slug?:string;status?:string;localOnly?:true};
 function normalizeCategory(value:string):CatalogCategory{
-  const key=value.toLowerCase().replaceAll(' ','-') as CatalogCategory;
+  const key=value.toLowerCase().replaceAll(' ','-');
   if(key==='motor-grader')return 'grader';
   if(key==='road-roller')return 'roller';
   if(key==='concrete-mixer')return 'mixer';
-  return key;
+  return key as CatalogCategory;
 }
 function normalizeProduct(product:CatalogProduct):CatalogProduct{
   const category=normalizeCategory(String(product.category||'excavator'));
@@ -33,6 +33,7 @@ export function productDescription(product:CatalogProduct){
 }
 export function productSpecifications(product:CatalogProduct){
   const specs:Record<string,string>=typeof product.specifications==='string'?Object.fromEntries(product.specifications.split('\n').map(line=>{const index=line.indexOf(':');return index>0?[line.slice(0,index).trim(),line.slice(index+1).trim()]:['',''];}).filter(([key,value])=>key&&value)):product.specifications||{};
-  for(const [key,value] of [['Engine',product.engine],['Operating Weight',product.operatingWeight],['Bucket Capacity',product.bucketCapacity],['Rated Power',product.ratedPower],['Dimension',product.dimension],['FOB Price',product.fobPrice],['MOQ',product.moq],['Delivery Time',product.deliveryTime]])if(value&&!specs[key])specs[key]=value;
+  const optionalSpecs:Array<[string,string|undefined]>=[['Engine',product.engine],['Operating Weight',product.operatingWeight],['Bucket Capacity',product.bucketCapacity],['Rated Power',product.ratedPower],['Dimension',product.dimension],['FOB Price',product.fobPrice],['MOQ',product.moq],['Delivery Time',product.deliveryTime]];
+  for(const [key,value] of optionalSpecs)if(value&&!specs[key])specs[key]=value;
   return Object.entries(specs).filter(([key,value])=>!['Source','Image Source','Verification Status'].includes(key)&&!mojibake.test(`${key}${value}`));
 }

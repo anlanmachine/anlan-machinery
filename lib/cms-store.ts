@@ -5,7 +5,7 @@ import {createClient} from '@supabase/supabase-js';
 export type CmsCollection='products'|'cases'|'factory'|'shipping'|'blog'|'media'|'inquiries';
 
 const DATA_DIR=path.join(process.cwd(),'data');
-const collectionFile=(collection:CmsCollection)=>path.join(DATA_DIR,`${collection}.json`);
+const collectionFile=(collection:CmsCollection)=>path.join(DATA_DIR,collection==='media'?'admin-media.json':`${collection}.json`);
 
 function supabaseConfigured(){
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL&&process.env.SUPABASE_SERVICE_ROLE_KEY);
