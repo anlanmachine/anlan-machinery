@@ -8,7 +8,7 @@ const DATA_FILE=path.join(process.cwd(),'data','products.json');
 const CATEGORIES=new Set(['excavator','loader','roller','grader','mixer']);
 type Product={id:string;brand:string;name:string;model:string;category:string;subCategory:string;source:'xcmg'|'pdf';image:string;images:string[];description:string;specifications:Record<string,string>;localOnly:true};
 
-function authorized(request:NextRequest){return request.headers.get('x-admin-password')===(process.env.ADMIN_PASSWORD||'anlan2026');}
+function authorized(request:NextRequest){return Boolean(process.env.ADMIN_PASSWORD)&&request.headers.get('x-admin-password')===process.env.ADMIN_PASSWORD;}
 async function readProducts():Promise<Product[]>{return JSON.parse(await readFile(DATA_FILE,'utf8'));}
 async function saveProducts(products:Product[]){const temporary=`${DATA_FILE}.tmp`;await writeFile(temporary,JSON.stringify(products,null,2)+'\n','utf8');await rename(temporary,DATA_FILE);}
 function normalize(input:Partial<Product>):Product{

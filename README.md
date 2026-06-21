@@ -355,3 +355,66 @@ For emergency text/image changes:
 2. Build and test.
 3. Push to GitHub.
 4. Redeploy.
+
+## Admin CMS
+
+Admin URL:
+
+```text
+/admin
+```
+
+Login email:
+
+```text
+Anlanmachinery@gmail.com
+```
+
+Required environment variable:
+
+```text
+ADMIN_PASSWORD=your-secure-password
+```
+
+Do not commit the real password to GitHub. Change the password by updating `ADMIN_PASSWORD` in Vercel Project Settings, then redeploy.
+
+The admin panel includes:
+
+- Dashboard statistics
+- Products
+- Cases
+- Factory
+- Shipping
+- Blog
+- Media Library
+- Inquiries
+
+Local development stores content in `data/*.json` and files in `public/uploads/admin/`. This is good for local editing and VPS hosting.
+
+Important for Vercel: Vercel's local filesystem is not permanent after deployments or serverless restarts. For production CMS persistence, configure Supabase:
+
+1. Create a Supabase project.
+2. Create a public Storage bucket named `anlan-media`.
+3. Run this SQL in Supabase SQL Editor:
+
+```sql
+create table if not exists public.cms_store (
+  key text primary key,
+  value jsonb not null default '[]'::jsonb,
+  updated_at timestamptz not null default now()
+);
+```
+
+4. Add these variables in Vercel:
+
+```text
+NEXT_PUBLIC_SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+SUPABASE_STORAGE_BUCKET=anlan-media
+ADMIN_PASSWORD=
+LEADS_TO_EMAIL=Anlanmachinery@gmail.com
+```
+
+5. Redeploy from Vercel.
+
+After Supabase is configured, admin content is stored in `cms_store`, uploaded files are stored in Supabase Storage, and frontend pages read the same data.
