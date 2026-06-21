@@ -210,10 +210,12 @@ Recommended for easiest global deployment.
 3. Import the GitHub repository.
 4. Set Framework Preset to **Next.js**.
 5. Build command: `npm run build`
-6. Install command: `npm install`
-7. Add environment variables from `.env.example`.
-8. Set `NEXT_PUBLIC_SITE_URL` to the Vercel preview URL first, then to the final domain after binding.
-9. Deploy.
+6. Install command: `PUPPETEER_SKIP_DOWNLOAD=true npm install`
+7. Output directory: `.next`
+8. Node.js version: `20.x`
+9. Add environment variables from `.env.example`.
+10. Set `NEXT_PUBLIC_SITE_URL` to the Vercel preview URL first, then to the final domain after binding.
+11. Deploy.
 
 Notes:
 

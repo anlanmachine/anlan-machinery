@@ -1,4 +1,6 @@
 export const WHATSAPP='8618715467045';
+export const COMPANY_EMAIL='Anlanmachinery@gmail.com';
+export const COMPANY_EMAIL_LINK=`mailto:${COMPANY_EMAIL}`;
 export const DEFAULT_MESSAGE='Hi, I want to get quotation for machinery. Please send price, specs, and shipping details.';
 export const wa=(message=DEFAULT_MESSAGE)=>`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(message)}`;
 
