@@ -9,6 +9,6 @@ export async function ProductCategoryPage({category,intro}:{category:CatalogCate
   return <section className="section pt-36"><div className="wrap">
     <p className="eyebrow">New machinery catalog</p><h1 className="title mt-3">{config.title}</h1><p className="sub mt-5">{intro}</p>
     <CategoryNavigation active={category}/>
-    <ProductListSection products={products}/>
+    <ProductListSection products={products} searchLabel={`Search ${config.label} models`} searchPlaceholder={`Search ${config.label.toLowerCase()} by model, name, specs...`}/>
   </div></section>;
 }
