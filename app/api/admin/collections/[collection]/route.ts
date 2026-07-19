@@ -3,6 +3,7 @@ import {requireAdmin} from '@/lib/admin-auth';
 import {CmsCollection,nowIso,readCollection,slugify,writeCollection} from '@/lib/cms-store';
 import {readFile} from 'fs/promises';
 import path from 'path';
+import {normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -35,7 +36,10 @@ function normalize(collection:CmsCollection,input:Record<string,unknown>){
     item.model=model;
     item.name=String(item.name||item.productName||`${brand} ${model}`).trim();
     item.slug=slugify(String(item.slug||`${brand}-${model}`));
-    item.category=String(item.category||'excavator').trim().toLowerCase().replaceAll(' ','-');
+    const category=normalizeProductCategory(String(item.category||''));
+    if(!category)throw new Error('Select a valid product category.');
+    item.category=category;
+    item.subCategory=normalizeSubCategory(category,String(item.subCategory||''));
     const images=Array.isArray(item.images)?item.images.map(String).filter(Boolean):[item.image].map(String).filter(Boolean);
     item.images=images;
     item.image=String(item.image||images[0]||'/uploads/placeholder-machine.svg');

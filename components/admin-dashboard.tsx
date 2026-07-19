@@ -2,6 +2,7 @@
 import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
 import {BarChart3,Edit3,Eye,FileText,FolderOpen,ImagePlus,Inbox,LayoutDashboard,LoaderCircle,LogOut,Package,Plus,Save,Search,Ship,Trash2,Upload} from 'lucide-react';
+import {PRODUCT_CATEGORY_OPTIONS,defaultSubCategory} from '@/lib/catalog-config';
 
 type Item=Record<string,any>;
 type ModuleKey='dashboard'|'products'|'cases'|'factory'|'shipping'|'blog'|'media'|'inquiries';
@@ -9,10 +10,9 @@ const modules:{key:ModuleKey;label:string;icon:any}[]=[
   {key:'dashboard',label:'Dashboard',icon:LayoutDashboard},{key:'products',label:'Products',icon:Package},{key:'cases',label:'Cases',icon:FolderOpen},{key:'factory',label:'Factory',icon:BarChart3},{key:'shipping',label:'Shipping',icon:Ship},{key:'blog',label:'Blog',icon:FileText},{key:'media',label:'Media Library',icon:ImagePlus},{key:'inquiries',label:'Inquiries',icon:Inbox}
 ];
 const collections=modules.filter(item=>item.key!=='dashboard').map(item=>item.key);
-const productCategories=['Excavator','Loader','Backhoe Loader','Road Roller','Forklift','Dump Truck','Motor Grader','Crane','Concrete Mixer'];
 const statuses=['Published','Draft'];
 const inquiryStatuses=['New','Contacted','Quoted','PI Sent','Deal','Lost'];
-const emptyProduct={brand:'XCMG',model:'',category:'Excavator',name:'',shortDescription:'',description:'',specifications:'',engine:'',operatingWeight:'',bucketCapacity:'',ratedPower:'',dimension:'',fobPrice:'',moq:'1 unit',deliveryTime:'15-30 days',seaFreight:'',destinationPort:'',cifPrice:'',deposit30:'',balance70:'',validity:'15 days',image:'',images:[],video:'',pdfBrochure:'',seoTitle:'',seoDescription:'',slug:'',status:'Published'};
+const emptyProduct={brand:'XCMG',model:'',category:'excavator',subCategory:'crawler-excavator',name:'',shortDescription:'',description:'',specifications:'',engine:'',operatingWeight:'',bucketCapacity:'',ratedPower:'',dimension:'',fobPrice:'',moq:'1 unit',deliveryTime:'15-30 days',seaFreight:'',destinationPort:'',cifPrice:'',deposit30:'',balance70:'',validity:'15 days',image:'',images:[],video:'',pdfBrochure:'',seoTitle:'',seoDescription:'',slug:'',status:'Published'};
 const emptyByModule:Record<string,Item>={
   products:emptyProduct,
   cases:{title:'',country:'',customerIndustry:'',machineModel:'',quantity:'',year:new Date().getFullYear(),description:'',images:[],video:'',status:'Published'},
@@ -96,16 +96,20 @@ function Editor({active,draft,setDraft,save,remove,busy}:{active:ModuleKey;draft
 }
 
 function ProductFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
+  function chooseCategory(category:typeof PRODUCT_CATEGORY_OPTIONS[number]['value']){
+    const next:Item={...draft,category,subCategory:defaultSubCategory(category)};
+    setDraft(next);
+  }
   async function attachUploadedMedia(urls:string[]){
     const next:Item={...draft,image:draft.image||urls[0],images:[...(draft.images||[]),...urls]};
     setDraft(next);
     if(next.id)await save(next,next.status==='Draft'?'Photo attached and saved. This product remains a Draft.':'Photo attached, saved and visible on the storefront.');
   }
-  return <div className="mt-6 grid gap-4 md:grid-cols-2">
-    {['brand','model','name','slug','shortDescription','description','engine','operatingWeight','bucketCapacity','ratedPower','dimension','fobPrice','moq','deliveryTime','seaFreight','destinationPort','cifPrice','deposit30','balance70','validity','video','pdfBrochure','seoTitle','seoDescription'].map(field=><Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['description','shortDescription','seoDescription'].includes(field)}/>)}
-    <Select field="category" options={productCategories} draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/>
-    <Input field="image" draft={draft} setDraft={setDraft}/><div><MediaUpload onUploaded={attachUploadedMedia}/><p className="mt-2 text-xs leading-5 text-gray-500">For an existing Published product, uploaded photos are attached and shown on the storefront automatically. For a new product, enter its Model then click Save & Publish.</p></div>
-    <ArrayField field="images" draft={draft} setDraft={setDraft}/><Input field="specifications" draft={draft} setDraft={setDraft} textarea/>
+  return <div className="mt-6 space-y-7">
+    <section><p className="text-sm font-black">1. Choose product category</p><div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">{PRODUCT_CATEGORY_OPTIONS.map(option=><button type="button" key={option.value} onClick={()=>chooseCategory(option.value)} className={`rounded-xl border p-3 text-left text-sm font-black transition ${draft.category===option.value?'border-ink bg-lime text-ink':'border-black/10 hover:border-black/40'}`}>{option.label}</button>)}</div><p className="mt-2 text-xs text-gray-500">Selected: <b>{PRODUCT_CATEGORY_OPTIONS.find(option=>option.value===draft.category)?.label||'Choose a category'}</b>. This controls the storefront page.</p></section>
+    <section className="grid gap-4 md:grid-cols-2"><Input field="model" draft={draft} setDraft={setDraft}/><Input field="brand" draft={draft} setDraft={setDraft}/><Input field="name" draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/><Input field="shortDescription" draft={draft} setDraft={setDraft} textarea/><Input field="description" draft={draft} setDraft={setDraft} textarea/></section>
+    <section className="rounded-2xl bg-sand p-4"><p className="font-black">2. Product photos</p><div className="mt-3 flex flex-wrap items-start gap-4">{draft.image&&<img src={draft.image} alt="Product preview" className="size-28 rounded-xl border border-black/10 bg-white object-contain p-1"/>}<div><MediaUpload onUploaded={attachUploadedMedia}/><p className="mt-2 max-w-md text-xs leading-5 text-gray-500">Upload JPG, PNG or WebP. Existing published products save the new photo automatically. For a new product, click Save & Publish after entering the model.</p></div></div><ArrayField field="images" draft={draft} setDraft={setDraft}/></section>
+    <details className="rounded-2xl border border-black/10 p-4"><summary className="cursor-pointer font-black">Specifications, price and SEO (optional)</summary><div className="mt-5 grid gap-4 md:grid-cols-2">{['engine','operatingWeight','bucketCapacity','ratedPower','dimension','fobPrice','moq','deliveryTime','seaFreight','destinationPort','cifPrice','deposit30','balance70','validity','video','pdfBrochure','slug','seoTitle','seoDescription'].map(field=><Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['seoDescription'].includes(field)}/>)}<Input field="specifications" draft={draft} setDraft={setDraft} textarea/></div></details>
   </div>;
 }
 

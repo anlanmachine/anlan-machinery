@@ -1,21 +1,15 @@
-import {readFile} from 'fs/promises';import path from 'path';import type {CatalogCategory} from './catalog-config';import {readCollection,slugify} from './cms-store';
+import {readFile} from 'fs/promises';import path from 'path';import {normalizeProductCategory,type CatalogCategory} from './catalog-config';import {readCollection,slugify} from './cms-store';
 export type CatalogProduct={id:string;brand:string;name:string;model:string;category:CatalogCategory;subCategory:string;source?:'xcmg'|'pdf'|'manual';image:string;images:string[];description:string;shortDescription?:string;specifications:Record<string,string>|string;engine?:string;operatingWeight?:string;bucketCapacity?:string;ratedPower?:string;dimension?:string;fobPrice?:string;moq?:string;deliveryTime?:string;video?:string;pdfBrochure?:string;seoTitle?:string;seoDescription?:string;slug?:string;status?:string;localOnly?:true};
-function normalizeCategory(value:string):CatalogCategory{
-  const key=value.toLowerCase().replaceAll(' ','-');
-  if(key==='motor-grader')return 'grader';
-  if(key==='road-roller')return 'roller';
-  if(key==='concrete-mixer')return 'mixer';
-  return key as CatalogCategory;
-}
-function normalizeProduct(product:CatalogProduct):CatalogProduct{
-  const category=normalizeCategory(String(product.category||'excavator'));
+function normalizeProduct(product:CatalogProduct):CatalogProduct|null{
+  const category=normalizeProductCategory(String(product.category||''));
+  if(!category)return null;
   const images=(Array.isArray(product.images)?product.images:[]).filter(Boolean);
   return {...product,category,subCategory:product.subCategory||category,image:product.image||images[0]||'/uploads/placeholder-machine.svg',images:images.length?images:[product.image||'/uploads/placeholder-machine.svg'],status:product.status||'Published'};
 }
 export async function getCatalog():Promise<CatalogProduct[]>{
   let fallback:CatalogProduct[]=[];
   try{fallback=JSON.parse(await readFile(path.join(process.cwd(),'data','products.json'),'utf8'));}catch{}
-  return (await readCollection<CatalogProduct[]>('products',fallback)).map(normalizeProduct).filter(product=>product.status!=='Draft');
+  return (await readCollection<CatalogProduct[]>('products',fallback)).map(normalizeProduct).filter((product):product is CatalogProduct=>product!==null&&product.status!=='Draft');
 }
 export async function getCategoryProducts(category:CatalogCategory){
   const products=await getCatalog();

@@ -1,24 +1,24 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {readCollection,writeCollection} from '@/lib/cms-store';
+import {normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
-const CATEGORIES=new Set(['excavator','loader','backhoe-loader','road-roller','roller','forklift','dump-truck','grader','motor-grader','crane','mixer','concrete-mixer']);
 type Product={id:string;brand:string;name:string;model:string;category:string;subCategory:string;source?:'xcmg'|'pdf'|'manual';image:string;images:string[];description:string;specifications:Record<string,string>;localOnly:true;status?:string;slug?:string};
 
 function authorized(request:NextRequest){return Boolean(process.env.ADMIN_PASSWORD)&&request.headers.get('x-admin-password')===process.env.ADMIN_PASSWORD;}
 async function readProducts():Promise<Product[]>{return readCollection<Product[]>('products',[]);}
 async function saveProducts(products:Product[]){await writeCollection('products',products);}
 function normalize(input:Partial<Product>):Product{
-  const model=String(input.model||'').trim(),category=String(input.category||'').trim().toLowerCase().replaceAll(' ','-');
+  const model=String(input.model||'').trim();
+  const category=normalizeProductCategory(String(input.category||''));
   if(!model)throw new Error('Model is required.');
-  if(!CATEGORIES.has(category))throw new Error('Select a valid category.');
-  const normalizedCategory=category==='motor-grader'?'grader':category==='concrete-mixer'?'mixer':category==='road-roller'?'roller':category;
+  if(!category)throw new Error('Select a valid category.');
   const images=(Array.isArray(input.images)?input.images:[]).map(String).filter(isAllowedMediaUrl);
   const image=String(input.image||images[0]||'');
   if(!isAllowedMediaUrl(image))throw new Error('Upload at least one product image.');
   const specifications=Object.fromEntries(Object.entries(input.specifications||{}).map(([key,value])=>[String(key).trim(),String(value).trim()]).filter(([key,value])=>key&&value));
-  return {id:String(input.id||`manual-${model.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}`),brand:String(input.brand||'XCMG').trim(),name:String(input.name||`${input.brand||'XCMG'} ${model}`).trim(),model,category:normalizedCategory,subCategory:String(input.subCategory||normalizedCategory).trim(),source:input.source||'manual',image,images:images.length?images:[image],description:String(input.description||'').trim(),specifications,localOnly:true,status:input.status||'Published',slug:input.slug};
+  return {id:String(input.id||`manual-${model.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}`),brand:String(input.brand||'XCMG').trim(),name:String(input.name||`${input.brand||'XCMG'} ${model}`).trim(),model,category,subCategory:normalizeSubCategory(category,String(input.subCategory||'')),source:input.source||'manual',image,images:images.length?images:[image],description:String(input.description||'').trim(),specifications,localOnly:true,status:input.status||'Published',slug:input.slug};
 }
 function isAllowedMediaUrl(value:string){return value.startsWith('/uploads/')||value.startsWith('/api/media/')||value.startsWith('https://');}
 function denied(){return NextResponse.json({success:false,error:'Incorrect admin password.'},{status:401});}
