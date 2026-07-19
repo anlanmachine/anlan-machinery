@@ -25,12 +25,16 @@ const emptyByModule:Record<string,Item>={
 };
 
 export function AdminDashboard(){
-  const [active,setActive]=useState<ModuleKey>('dashboard'),[data,setData]=useState<Record<string,Item[]>>({}),[draft,setDraft]=useState<Item|null>(null),[query,setQuery]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState('');
+  const [active,setActive]=useState<ModuleKey>('dashboard'),[data,setData]=useState<Record<string,Item[]>>({}),[draft,setDraft]=useState<Item|null>(null),[query,setQuery]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[messageType,setMessageType]=useState<'success'|'error'>('success');
   useEffect(()=>{void loadAll();},[]);
   async function loadAll(){
     setBusy(true);
-    const entries=await Promise.all(collections.map(async key=>[key,await fetch(`/api/admin/collections/${key}`,{cache:'no-store'}).then(r=>r.ok?r.json():[])] as const));
-    setData(Object.fromEntries(entries));setBusy(false);
+    try{
+      const entries=await Promise.all(collections.map(async key=>[key,await fetch(`/api/admin/collections/${key}`,{cache:'no-store'}).then(r=>r.ok?r.json():[])] as const));
+      setData(Object.fromEntries(entries));
+    }catch{
+      setMessageType('error');setMessage('Could not load the latest content. Please refresh and try again.');
+    }finally{setBusy(false);}
   }
   const items=data[active]||[];
   const filtered=useMemo(()=>items.filter(item=>JSON.stringify(item).toLowerCase().includes(query.toLowerCase())),[items,query]);
@@ -39,18 +43,27 @@ export function AdminDashboard(){
   async function save(itemToSave:Item|null|undefined=draft,successMessage='Saved successfully.'){
     if(!itemToSave||active==='dashboard')return;
     setBusy(true);setMessage('');
-    const method=itemToSave.id?'PUT':'POST';
-    const response=await fetch(`/api/admin/collections/${active}`,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(itemToSave)});
-    const result=await response.json();
-    setBusy(false);
-    if(!response.ok){setMessage(result.error||'Save failed.');return;}
-    setDraft(result.item);setMessage(successMessage);await loadAll();
+    try{
+      const method=itemToSave.id?'PUT':'POST';
+      const response=await fetch(`/api/admin/collections/${active}`,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(itemToSave)});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'Save failed.');
+      setDraft(result.item);setMessageType('success');setMessage(successMessage);await loadAll();
+    }catch(caught){
+      setMessageType('error');setMessage(caught instanceof Error?caught.message:'Save failed. Please try again.');
+    }finally{setBusy(false);}
   }
   async function remove(item:Item){
     if(active==='dashboard'||!confirm('Delete this item?'))return;
-    setBusy(true);
-    await fetch(`/api/admin/collections/${active}?id=${encodeURIComponent(item.id)}`,{method:'DELETE'});
-    setDraft(null);await loadAll();setBusy(false);setMessage('Deleted.');
+    setBusy(true);setMessage('');
+    try{
+      const response=await fetch(`/api/admin/collections/${active}?id=${encodeURIComponent(item.id)}`,{method:'DELETE'});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'Delete failed.');
+      setDraft(null);setMessageType('success');setMessage('Deleted.');await loadAll();
+    }catch(caught){
+      setMessageType('error');setMessage(caught instanceof Error?caught.message:'Delete failed. Please try again.');
+    }finally{setBusy(false);}
   }
   async function logout(){await fetch('/api/admin/auth',{method:'DELETE'});location.href='/admin/login';}
   return <main className="min-h-screen bg-[#f3f5f2] pt-20">
@@ -65,11 +78,11 @@ export function AdminDashboard(){
           <div><p className="eyebrow">Admin panel</p><h1 className="mt-2 text-3xl font-black">{modules.find(item=>item.key===active)?.label}</h1><p className="mt-1 text-sm text-gray-500">Edit content, upload media, publish to storefront.</p></div>
           {active!=='dashboard'&&active!=='inquiries'&&<button onClick={()=>setDraft({...emptyByModule[active]})} className="inline-flex items-center gap-2 rounded-full bg-lime px-5 py-3 font-black"><Plus size={18}/>Add New</button>}
         </div>
-        {message&&<p className="mt-4 rounded-2xl bg-amber-50 px-5 py-3 text-sm font-bold text-amber-800">{message}</p>}
+        {message&&<p role="status" className={`mt-4 rounded-2xl px-5 py-3 text-sm font-bold ${messageType==='error'?'bg-red-50 text-red-700':'bg-green-50 text-green-800'}`}>{message}</p>}
         {active==='dashboard'?<Dashboard stats={stats}/>:<div className="mt-5 grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
           <div className="rounded-3xl bg-white p-5 shadow-sm">
             <div className="relative"><Search className="absolute left-3 top-3.5 text-gray-400" size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search model, title, country, category..." className="w-full rounded-xl border border-black/10 py-3 pl-10 pr-4 outline-none focus:border-black"/></div>
-            <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading...</p>:filtered.map(item=><button key={item.id||item.url||JSON.stringify(item).slice(0,30)} onClick={()=>setDraft({...item})} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left hover:bg-gray-50 ${draft?.id===item.id?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
+            <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading latest content...</p>:filtered.length===0?<p className="p-6 text-center text-sm text-gray-500">No matching items yet. Use Add New to create one.</p>:filtered.map(item=><button key={item.id||item.url||JSON.stringify(item).slice(0,30)} onClick={()=>setDraft({...item})} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left transition hover:bg-gray-50 ${draft?.id===item.id?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
           </div>
           <Editor active={active} draft={draft} setDraft={setDraft} save={save} remove={remove} busy={busy} categoryOptions={categoryOptions}/>
         </div>}
@@ -108,9 +121,16 @@ function ProductFields({draft,setDraft,save,categoryOptions}:{draft:Item;setDraf
     setDraft(next);
     if(next.id)await save(next,next.status==='Draft'?'Photo attached and saved. This product remains a Draft.':'Photo attached, saved and visible on the storefront.');
   }
+  function completeProductBasics(){
+    const brand=String(draft.brand||'XCMG').trim()||'XCMG';
+    const model=String(draft.model||'').trim();
+    if(!model)return;
+    const slug=`${brand}-${model}`.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'');
+    setDraft({...draft,brand,name:String(draft.name||'').trim()||`${brand} ${model}`,slug:String(draft.slug||'').trim()||slug});
+  }
   return <div className="mt-6 space-y-7">
     <section><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">1. Choose product category</p><p className="text-xs text-gray-500">Manage categories from Product Categories.</p></div><div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">{categoryOptions.map(option=><button type="button" key={option.value} onClick={()=>chooseCategory(option)} className={`rounded-xl border p-3 text-left text-sm font-black transition ${draft.category===option.value?'border-ink bg-lime text-ink':'border-black/10 hover:border-black/40'}`}>{option.label}</button>)}</div><p className="mt-2 text-xs text-gray-500">Selected: <b>{categoryOptions.find(option=>option.value===draft.category)?.label||'Choose a category'}</b>. This controls the storefront page.</p></section>
-    <section className="grid gap-4 md:grid-cols-2"><Input field="model" draft={draft} setDraft={setDraft}/><Input field="brand" draft={draft} setDraft={setDraft}/><Input field="name" draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/><Input field="shortDescription" draft={draft} setDraft={setDraft} textarea/><Input field="description" draft={draft} setDraft={setDraft} textarea/></section>
+    <section className="grid gap-4 md:grid-cols-2"><Input field="model" draft={draft} setDraft={setDraft}/><Input field="brand" draft={draft} setDraft={setDraft}/><div className="md:col-span-2 -mt-1"><button type="button" onClick={completeProductBasics} disabled={!String(draft.model||'').trim()} className="rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-black transition hover:border-ink disabled:cursor-not-allowed disabled:opacity-40">Use brand + model for product name and page link</button><p className="mt-2 text-xs text-gray-500">A quick shortcut for new products. You can still edit the product name and slug below.</p></div><Input field="name" draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/><Input field="shortDescription" draft={draft} setDraft={setDraft} textarea/><Input field="description" draft={draft} setDraft={setDraft} textarea/></section>
     <section className="rounded-2xl bg-sand p-4"><p className="font-black">2. Product photos</p><div className="mt-3 flex flex-wrap items-start gap-4">{draft.image&&<img src={draft.image} alt="Product preview" className="size-28 rounded-xl border border-black/10 bg-white object-contain p-1"/>}<div><MediaUpload onUploaded={attachUploadedMedia}/><p className="mt-2 max-w-md text-xs leading-5 text-gray-500">Upload JPG, PNG or WebP. Existing published products save the new photo automatically. For a new product, click Save & Publish after entering the model.</p></div></div><ArrayField field="images" draft={draft} setDraft={setDraft}/></section>
     <details className="rounded-2xl border border-black/10 p-4"><summary className="cursor-pointer font-black">Specifications, price and SEO (optional)</summary><div className="mt-5 grid gap-4 md:grid-cols-2">{['engine','operatingWeight','bucketCapacity','ratedPower','dimension','fobPrice','moq','deliveryTime','seaFreight','destinationPort','cifPrice','deposit30','balance70','validity','video','pdfBrochure','slug','seoTitle','seoDescription'].map(field=><Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['seoDescription'].includes(field)}/>)}<Input field="specifications" draft={draft} setDraft={setDraft} textarea/></div></details>
   </div>;

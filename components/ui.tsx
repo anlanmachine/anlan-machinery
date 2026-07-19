@@ -2,7 +2,7 @@
 
 import {useEffect,useState} from 'react';
 import Link from 'next/link';
-import {MessageCircle,X,Send,Menu,ChevronDown,Mail} from 'lucide-react';
+import {MessageCircle,X,Send,Menu,ChevronDown,Mail,LoaderCircle} from 'lucide-react';
 import {COMPANY_EMAIL,COMPANY_EMAIL_LINK,wa} from '@/lib/data';
 import {CATEGORY_LINKS} from '@/lib/catalog-config';
 
@@ -45,15 +45,24 @@ export function Footer(){
 
 export function LeadForm({compact=false}:{compact?:boolean}){
   const [sent,setSent]=useState(false);
+  const [submitting,setSubmitting]=useState(false);
+  const [error,setError]=useState('');
   async function submit(event:React.FormEvent<HTMLFormElement>){
     event.preventDefault();
+    if(submitting)return;
     const form=new FormData(event.currentTarget);
-    await fetch('/api/leads',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(Object.fromEntries(form))});
-    setSent(true);
-    window.open(wa(`Hi, I want a quotation for ${form.get('productModel')||form.get('machine')||'machinery'}. Destination: ${form.get('country')||'Not specified'}. Please send price, specs, and shipping details.`),'_blank');
+    setSubmitting(true);setError('');
+    try{
+      const response=await fetch('/api/leads',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify(Object.fromEntries(form))});
+      if(!response.ok)throw new Error('We could not send your inquiry just now. Please try again or contact us on WhatsApp.');
+      setSent(true);
+      window.open(wa(`Hi, I want a quotation for ${form.get('productModel')||form.get('machine')||'machinery'}. Destination: ${form.get('country')||'Not specified'}. Please send price, specs, and shipping details.`),'_blank');
+    }catch(caught){
+      setError(caught instanceof Error?caught.message:'We could not send your inquiry. Please try again.');
+    }finally{setSubmitting(false);}
   }
   if(sent)return <div className="rounded-2xl bg-lime/15 p-6 font-bold text-ink">Thank you - opening WhatsApp so we can reply faster. You can also email us: <EmailLink className="underline"/></div>;
-  return <form onSubmit={submit} className={`grid gap-3 ${compact?'':'rounded-3xl bg-white p-6 shadow-xl'}`}><input required name="name" placeholder="Name" className="field"/><input name="company" placeholder="Company" className="field"/><div className="grid grid-cols-2 gap-3"><input name="country" placeholder="Country" className="field"/><input name="port" placeholder="Destination port" className="field"/></div><div className="grid grid-cols-2 gap-3"><input name="phone" placeholder="Phone / WhatsApp" className="field"/><input required type="email" name="email" placeholder="Email" className="field"/></div><div className="grid grid-cols-2 gap-3"><input name="productModel" placeholder="Product model" className="field"/><input name="quantity" placeholder="Quantity" className="field"/></div><textarea name="message" placeholder="Message" className="field min-h-24"/><input name="website" tabIndex={-1} autoComplete="off" className="hidden"/><button className="flex items-center justify-center gap-2 rounded-xl bg-ink px-5 py-4 font-bold text-white hover:bg-lime hover:text-ink"><Send size={18}/>Send Inquiry</button><div className="flex flex-col items-center gap-1 text-center text-xs text-gray-500 sm:flex-row sm:justify-center"><span>Typical response within 30 minutes during business hours.</span><span className="hidden sm:inline">|</span><EmailLink className="font-bold text-ink hover:text-[#789400]"/></div></form>;
+  return <form onSubmit={submit} className={`grid gap-3 ${compact?'':'rounded-3xl bg-white p-6 shadow-xl'}`}><input required name="name" placeholder="Name" className="field"/><input name="company" placeholder="Company" className="field"/><div className="grid grid-cols-2 gap-3"><input name="country" placeholder="Country" className="field"/><input name="port" placeholder="Destination port" className="field"/></div><div className="grid grid-cols-2 gap-3"><input name="phone" placeholder="Phone / WhatsApp" className="field"/><input required type="email" name="email" placeholder="Email" className="field"/></div><div className="grid grid-cols-2 gap-3"><input name="productModel" placeholder="Product model" className="field"/><input name="quantity" placeholder="Quantity" className="field"/></div><textarea name="message" placeholder="Message" className="field min-h-24"/><input name="website" tabIndex={-1} autoComplete="off" className="hidden"/><button disabled={submitting} className="flex items-center justify-center gap-2 rounded-xl bg-ink px-5 py-4 font-bold text-white transition hover:bg-lime hover:text-ink disabled:cursor-wait disabled:opacity-70">{submitting?<LoaderCircle className="animate-spin" size={18}/>:<Send size={18}/>} {submitting?'Sending inquiry...':'Send Inquiry'}</button>{error&&<p role="alert" className="rounded-xl bg-red-50 px-4 py-3 text-sm font-bold text-red-700">{error}</p>}<div className="flex flex-col items-center gap-1 text-center text-xs text-gray-500 sm:flex-row sm:justify-center"><span>Typical response within 30 minutes during business hours.</span><span className="hidden sm:inline">|</span><EmailLink className="font-bold text-ink hover:text-[#789400]"/></div></form>;
 }
 
 export function ContactActions({quoteText='Get a quote',emailClassName=''}:{quoteText?:string;emailClassName?:string}){

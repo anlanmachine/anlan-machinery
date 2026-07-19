@@ -65,10 +65,10 @@ export function ProductSearchList({products,emptyMessage,searchLabel='Search mac
       <h2 className="text-2xl font-black">No matching machine found</h2>
       <p className="mt-3 text-gray-500">Try another model number like XE215G, ZL50GN, XC870K, GR215, or send us your required model for sourcing.</p>
       <a href={wa(`Hi, I am looking for ${query}. Please help me find this machine and send quotation.`)} target="_blank" rel="noopener" className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-bold text-white"><MessageCircle size={17}/>Ask ANLAN to source it</a>
-    </div>:<div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{visible.map(product=><article key={product.id} className="overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5">
+    </div>:<div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{visible.map(product=><article key={product.id} className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-black/10">
       <Link href={product.href} className="block">
         <div className="relative aspect-[4/3] overflow-hidden bg-[#f3f5f2]">
-          <Image src={product.image} alt={product.name} fill className="object-contain p-5" sizes="(max-width:768px) 100vw,33vw"/>
+          <Image src={product.image} alt={product.name} fill className="object-contain p-5 transition duration-500 group-hover:scale-[1.04]" sizes="(max-width:768px) 100vw,33vw"/>
           <span className="absolute left-4 top-4 rounded-full bg-lime px-3 py-1 text-[11px] font-black uppercase tracking-wider">Factory New</span>
         </div>
       </Link>
@@ -78,9 +78,8 @@ export function ProductSearchList({products,emptyMessage,searchLabel='Search mac
         <p className="mt-3 line-clamp-3 text-sm leading-6 text-gray-500">{product.description}</p>
         {product.specs.length>0&&<dl className="mt-5 divide-y divide-black/5 rounded-xl bg-gray-50 px-4">{product.specs.slice(0,3).map(([key,value])=><div className="flex justify-between gap-3 py-2 text-xs" key={key}><dt className="text-gray-500">{key}</dt><dd className="text-right font-bold">{value}</dd></div>)}</dl>}
         <div className="mt-6 flex flex-wrap gap-2">
-          <Link href={product.href} className="rounded-full border border-black/15 px-5 py-3 font-bold">View Details</Link>
+          <Link href={product.href} className="rounded-full border border-black/15 px-5 py-3 font-bold transition hover:border-ink hover:bg-gray-50">View Details</Link>
           <a href={wa(`Hi, I want a quotation for ${product.name}. Please send price, specs, and shipping details.`)} target="_blank" rel="noopener" className="inline-flex items-center gap-2 rounded-full bg-ink px-5 py-3 font-bold text-white"><MessageCircle size={17}/>Request Quote</a>
-          <a href={COMPANY_EMAIL_LINK} className="inline-flex items-center gap-2 rounded-full border border-black/15 px-5 py-3 font-bold"><Mail size={17}/>Email: {COMPANY_EMAIL}</a>
         </div>
       </div>
     </article>)}</div>}
