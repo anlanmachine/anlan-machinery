@@ -4,7 +4,8 @@ import {nowIso,readCollection,saveUpload,writeCollection} from '@/lib/cms-store'
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
-const MAX_SIZE=80*1024*1024;
+export const maxDuration=60;
+const MAX_SIZE=35*1024*1024;
 const TYPES=new Set(['image/jpeg','image/png','image/webp','video/mp4','application/pdf']);
 
 export async function POST(request:NextRequest){
@@ -17,9 +18,9 @@ export async function POST(request:NextRequest){
     const uploaded:Record<string,unknown>[]=[];
     for(const file of files){
       if(!TYPES.has(file.type))throw new Error('Only JPG, PNG, WebP, MP4 and PDF files are supported.');
-      if(file.size>MAX_SIZE)throw new Error('Each file must be smaller than 80 MB.');
+      if(file.size>MAX_SIZE)throw new Error('Each file must be smaller than 35 MB. Large phone photos are compressed automatically, but videos/PDF files should be smaller.');
       const saved=await saveUpload(file,folder);
-      const asset:Record<string,unknown>={id:`media-${Date.now()}-${uploaded.length}`,title:file.name,type:file.type.startsWith('image/')?'image':file.type==='video/mp4'?'video':'document',url:saved.url,src:saved.url,bytes:file.size,mime:file.type,category:folder,status:'Published',createdAt:nowIso(),updatedAt:nowIso()};
+      const asset:Record<string,unknown>={id:`media-${Date.now()}-${uploaded.length}`,title:file.name,type:String(saved.type).startsWith('image/')?'image':saved.type==='video/mp4'?'video':'document',url:saved.url,src:saved.url,bytes:saved.size,mime:saved.type,category:folder,status:'Published',createdAt:nowIso(),updatedAt:nowIso()};
       assets.unshift(asset);
       uploaded.push(asset);
     }

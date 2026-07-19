@@ -2,6 +2,7 @@ import {readFile, rename, writeFile, mkdir} from 'fs/promises';
 import path from 'path';
 import {createClient} from '@supabase/supabase-js';
 import {neon} from '@neondatabase/serverless';
+import sharp from 'sharp';
 
 export type CmsCollection='products'|'cases'|'factory'|'shipping'|'blog'|'media'|'inquiries';
 
@@ -103,30 +104,44 @@ export function slugify(value:string){
 export function nowIso(){return new Date().toISOString();}
 
 export async function saveUpload(file:File,folder='admin'){
-  const bytes=Buffer.from(await file.arrayBuffer());
-  const extension=path.extname(file.name).toLowerCase()||mimeExtension(file.type);
+  const originalBytes=Buffer.from(await file.arrayBuffer());
+  const prepared=await prepareStoredFile(file,originalBytes);
+  const bytes=prepared.bytes;
+  const extension=prepared.extension;
   const base=slugify(path.basename(file.name,path.extname(file.name)))||'media';
   const filename=`${base}-${Date.now()}${extension}`;
   const key=`uploads/${folder}/${filename}`;
   if(databaseConfigured()){
     await ensureSchema();
     const id=`media-${Date.now()}-${Math.random().toString(36).slice(2,10)}`;
-    await sql()`INSERT INTO media_files (id,filename,mime,bytes,size) VALUES (${id},${filename},${file.type||'application/octet-stream'},${bytes},${file.size})`;
-    return {url:`/api/media/${id}`,path:id,filename,size:file.size,type:file.type};
+    await sql()`INSERT INTO media_files (id,filename,mime,bytes,size) VALUES (${id},${filename},${prepared.type},${bytes},${bytes.length})`;
+    return {url:`/api/media/${id}`,path:id,filename,size:bytes.length,type:prepared.type};
   }
   if(supabaseConfigured()&&process.env.SUPABASE_STORAGE_BUCKET){
     const bucket=process.env.SUPABASE_STORAGE_BUCKET;
     const client=supabase();
-    const {error}=await client.storage.from(bucket).upload(key,bytes,{contentType:file.type||'application/octet-stream',upsert:false});
+    const {error}=await client.storage.from(bucket).upload(key,bytes,{contentType:prepared.type,upsert:false});
     if(error)throw new Error(error.message);
     const {data}=client.storage.from(bucket).getPublicUrl(key);
-    return {url:data.publicUrl,path:key,filename,size:file.size,type:file.type};
+    return {url:data.publicUrl,path:key,filename,size:bytes.length,type:prepared.type};
   }
   if(productionRuntime())throw new Error('Persistent media storage is not configured. Set DATABASE_URL in Vercel before uploading files.');
   const output=path.join(process.cwd(),'public','uploads',folder);
   await mkdir(output,{recursive:true});
   await writeFile(path.join(output,filename),bytes);
-  return {url:`/uploads/${folder}/${filename}`,path:key,filename,size:file.size,type:file.type};
+  return {url:`/uploads/${folder}/${filename}`,path:key,filename,size:bytes.length,type:prepared.type};
+}
+
+async function prepareStoredFile(file:File,bytes:Buffer){
+  if(file.type.startsWith('image/')){
+    try{
+      const optimized=await sharp(bytes).rotate().resize({width:1800,height:1800,fit:'inside',withoutEnlargement:true}).webp({quality:82}).toBuffer();
+      return {bytes:optimized,type:'image/webp',extension:'.webp'};
+    }catch{
+      return {bytes,type:file.type||'application/octet-stream',extension:path.extname(file.name).toLowerCase()||mimeExtension(file.type)};
+    }
+  }
+  return {bytes,type:file.type||'application/octet-stream',extension:path.extname(file.name).toLowerCase()||mimeExtension(file.type)};
 }
 
 function mimeExtension(type:string){

@@ -125,12 +125,62 @@ function Select({field,options,draft,setDraft}:{field:string;options:string[];dr
   return <label className="text-sm font-bold">{field.replace(/([A-Z])/g,' $1')}<select value={draft[field]||options[0]} onChange={e=>setDraft({...draft,[field]:e.target.value})} className="mt-2 w-full rounded-xl border border-black/15 bg-white px-4 py-3">{options.map(item=><option key={item}>{item}</option>)}</select></label>;
 }
 function MediaUpload({onUploaded}:{onUploaded:(urls:string[])=>void}){
-  const [busy,setBusy]=useState(false);
+  const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
   async function upload(files:FileList|null){
-    if(!files?.length)return;setBusy(true);
-    const form=new FormData();[...files].forEach(file=>form.append('files',file));form.append('folder','admin');
-    const result=await fetch('/api/admin/upload',{method:'POST',body:form}).then(r=>r.json());
-    setBusy(false);if(result.assets)onUploaded(result.assets.map((item:Item)=>item.url));
+    if(!files?.length)return;
+    setBusy(true);setError('');setNote('Preparing files...');
+    const controller=new AbortController(),timeout=window.setTimeout(()=>controller.abort(),120000);
+    try{
+      const prepared=await Promise.all([...files].map(prepareUploadFile));
+      const form=new FormData();
+      prepared.forEach(file=>form.append('files',file));
+      form.append('folder','admin');
+      setNote(`Uploading ${prepared.length} file(s)...`);
+      const response=await fetch('/api/admin/upload',{method:'POST',body:form,signal:controller.signal});
+      const result=await response.json().catch(()=>({success:false,error:'Upload failed. Please try a smaller JPG, PNG or WebP image.'}));
+      if(!response.ok||!result.success)throw new Error(result.error||'Upload failed.');
+      const urls=(result.assets||[]).map((item:Item)=>item.url).filter(Boolean);
+      if(!urls.length)throw new Error('Upload finished but no file URL was returned.');
+      onUploaded(urls);
+      setNote(`${urls.length} file(s) uploaded successfully.`);
+    }catch(error){
+      setError(error instanceof Error&&error.name==='AbortError'?'Upload timed out. Please try fewer or smaller photos.':error instanceof Error?error.message:'Upload failed.');
+      setNote('');
+    }finally{
+      window.clearTimeout(timeout);
+      setBusy(false);
+    }
   }
-  return <label className="inline-flex cursor-pointer items-center justify-center gap-2 rounded-xl border border-black/15 px-4 py-3 font-black hover:border-black"><Upload size={18}/>{busy?'Uploading...':'Upload'}<input type="file" multiple accept="image/*,video/mp4,application/pdf" className="hidden" onChange={e=>upload(e.target.files)}/></label>;
+  return <div className="space-y-2">
+    <label className={`inline-flex items-center justify-center gap-2 rounded-xl border border-black/15 px-4 py-3 font-black ${busy?'cursor-wait opacity-70':'cursor-pointer hover:border-black'}`}><Upload size={18}/>{busy?'Uploading...':'Upload'}<input type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,application/pdf" className="hidden" disabled={busy} onChange={e=>{void upload(e.target.files);e.currentTarget.value='';}}/></label>
+    {note&&<p className="text-xs font-bold text-green-700">{note}</p>}
+    {error&&<p className="text-xs font-bold text-red-600">{error}</p>}
+  </div>;
+}
+
+async function prepareUploadFile(file:File){
+  if(!file.type.startsWith('image/'))return file;
+  if(!['image/jpeg','image/png','image/webp'].includes(file.type))throw new Error('Only JPG, PNG and WebP images are supported. Please convert the photo and upload again.');
+  return compressImage(file);
+}
+
+async function compressImage(file:File){
+  try{
+    const bitmap=await createImageBitmap(file);
+    const maxSide=1800,scale=Math.min(1,maxSide/Math.max(bitmap.width,bitmap.height));
+    const width=Math.max(1,Math.round(bitmap.width*scale)),height=Math.max(1,Math.round(bitmap.height*scale));
+    const canvas=document.createElement('canvas');
+    canvas.width=width;canvas.height=height;
+    const context=canvas.getContext('2d');
+    if(!context)return file;
+    context.drawImage(bitmap,0,0,width,height);
+    const blob=await new Promise<Blob|null>(resolve=>canvas.toBlob(resolve,'image/webp',0.82));
+    bitmap.close();
+    if(!blob)return file;
+    if(blob.size>=file.size&&file.size<3.5*1024*1024)return file;
+    const name=file.name.replace(/\.[^.]+$/,'')||'image';
+    return new File([blob],`${name}.webp`,{type:'image/webp',lastModified:Date.now()});
+  }catch{
+    return file;
+  }
 }
