@@ -1,26 +1,26 @@
 import {NextRequest,NextResponse} from 'next/server';
-import {readFile,rename,writeFile} from 'fs/promises';
-import path from 'path';
+import {readCollection,writeCollection} from '@/lib/cms-store';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
-const DATA_FILE=path.join(process.cwd(),'data','products.json');
-const CATEGORIES=new Set(['excavator','loader','roller','grader','mixer']);
-type Product={id:string;brand:string;name:string;model:string;category:string;subCategory:string;source:'xcmg'|'pdf';image:string;images:string[];description:string;specifications:Record<string,string>;localOnly:true};
+const CATEGORIES=new Set(['excavator','loader','backhoe-loader','road-roller','roller','forklift','dump-truck','grader','motor-grader','crane','mixer','concrete-mixer']);
+type Product={id:string;brand:string;name:string;model:string;category:string;subCategory:string;source?:'xcmg'|'pdf'|'manual';image:string;images:string[];description:string;specifications:Record<string,string>;localOnly:true;status?:string;slug?:string};
 
 function authorized(request:NextRequest){return Boolean(process.env.ADMIN_PASSWORD)&&request.headers.get('x-admin-password')===process.env.ADMIN_PASSWORD;}
-async function readProducts():Promise<Product[]>{return JSON.parse(await readFile(DATA_FILE,'utf8'));}
-async function saveProducts(products:Product[]){const temporary=`${DATA_FILE}.tmp`;await writeFile(temporary,JSON.stringify(products,null,2)+'\n','utf8');await rename(temporary,DATA_FILE);}
+async function readProducts():Promise<Product[]>{return readCollection<Product[]>('products',[]);}
+async function saveProducts(products:Product[]){await writeCollection('products',products);}
 function normalize(input:Partial<Product>):Product{
-  const model=String(input.model||'').trim(),category=String(input.category||'').trim();
+  const model=String(input.model||'').trim(),category=String(input.category||'').trim().toLowerCase().replaceAll(' ','-');
   if(!model)throw new Error('Model is required.');
   if(!CATEGORIES.has(category))throw new Error('Select a valid category.');
-  const images=(Array.isArray(input.images)?input.images:[]).map(String).filter(item=>item.startsWith('/uploads/'));
+  const normalizedCategory=category==='motor-grader'?'grader':category==='concrete-mixer'?'mixer':category==='road-roller'?'roller':category;
+  const images=(Array.isArray(input.images)?input.images:[]).map(String).filter(isAllowedMediaUrl);
   const image=String(input.image||images[0]||'');
-  if(!image.startsWith('/uploads/'))throw new Error('Upload at least one local product image.');
+  if(!isAllowedMediaUrl(image))throw new Error('Upload at least one product image.');
   const specifications=Object.fromEntries(Object.entries(input.specifications||{}).map(([key,value])=>[String(key).trim(),String(value).trim()]).filter(([key,value])=>key&&value));
-  return {id:String(input.id||`manual-${model.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}`),brand:String(input.brand||'XCMG').trim(),name:String(input.name||`${input.brand||'XCMG'} ${model}`).trim(),model,category,subCategory:String(input.subCategory||category).trim(),source:input.source==='pdf'?'pdf':'xcmg',image,images:images.length?images:[image],description:String(input.description||'').trim(),specifications,localOnly:true};
+  return {id:String(input.id||`manual-${model.replace(/[^a-z0-9]+/gi,'-').toLowerCase()}`),brand:String(input.brand||'XCMG').trim(),name:String(input.name||`${input.brand||'XCMG'} ${model}`).trim(),model,category:normalizedCategory,subCategory:String(input.subCategory||normalizedCategory).trim(),source:input.source||'manual',image,images:images.length?images:[image],description:String(input.description||'').trim(),specifications,localOnly:true,status:input.status||'Published',slug:input.slug};
 }
+function isAllowedMediaUrl(value:string){return value.startsWith('/uploads/')||value.startsWith('/api/media/')||value.startsWith('https://');}
 function denied(){return NextResponse.json({success:false,error:'Incorrect admin password.'},{status:401});}
 
 export async function GET(request:NextRequest){if(!authorized(request))return denied();return NextResponse.json(await readProducts(),{headers:{'Cache-Control':'no-store'}});}
