@@ -30,6 +30,7 @@ function normalize(collection:CmsCollection,input:Record<string,unknown>){
   if(collection==='products'){
     const brand=String(item.brand||'XCMG').trim();
     const model=String(item.model||'').trim();
+    if(!model)throw new Error('Product Model is required before publishing.');
     item.brand=brand;
     item.model=model;
     item.name=String(item.name||item.productName||`${brand} ${model}`).trim();
@@ -38,7 +39,7 @@ function normalize(collection:CmsCollection,input:Record<string,unknown>){
     const images=Array.isArray(item.images)?item.images.map(String).filter(Boolean):[item.image].map(String).filter(Boolean);
     item.images=images;
     item.image=String(item.image||images[0]||'/uploads/placeholder-machine.svg');
-    item.status=String(item.status||'Published');
+    item.status=String(item.status||'Published')==='Draft'?'Draft':'Published';
     item.localOnly=true;
   }
   if(collection==='blog')item.slug=slugify(String(item.slug||item.title||item.id));

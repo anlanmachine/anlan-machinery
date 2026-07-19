@@ -34,15 +34,15 @@ export function AdminDashboard(){
   const items=data[active]||[];
   const filtered=useMemo(()=>items.filter(item=>JSON.stringify(item).toLowerCase().includes(query.toLowerCase())),[items,query]);
   const stats={products:(data.products||[]).length,cases:(data.cases||[]).length,blog:(data.blog||[]).length,media:(data.media||[]).length,updated:[...Object.values(data).flat()].map(item=>item.updatedAt||item.createdAt).filter(Boolean).sort().pop()||'Not yet'};
-  async function save(){
-    if(!draft||active==='dashboard')return;
+  async function save(itemToSave:Item|null|undefined=draft,successMessage='Saved successfully.'){
+    if(!itemToSave||active==='dashboard')return;
     setBusy(true);setMessage('');
-    const method=draft.id?'PUT':'POST';
-    const response=await fetch(`/api/admin/collections/${active}`,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(draft)});
+    const method=itemToSave.id?'PUT':'POST';
+    const response=await fetch(`/api/admin/collections/${active}`,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(itemToSave)});
     const result=await response.json();
     setBusy(false);
     if(!response.ok){setMessage(result.error||'Save failed.');return;}
-    setDraft(result.item);setMessage('Saved successfully.');await loadAll();
+    setDraft(result.item);setMessage(successMessage);await loadAll();
   }
   async function remove(item:Item){
     if(active==='dashboard'||!confirm('Delete this item?'))return;
@@ -80,26 +80,31 @@ function Dashboard({stats}:{stats:Record<string,any>}){
   return <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-5">{[['Products',stats.products],['Cases',stats.cases],['Blogs',stats.blog],['Uploaded media',stats.media],['Last update',String(stats.updated).slice(0,10)]].map(([label,value])=><article className="rounded-3xl bg-white p-6 shadow-sm" key={label}><p className="text-sm font-bold text-gray-500">{label}</p><b className="mt-3 block text-3xl font-black">{value}</b></article>)}</div>;
 }
 
-function Editor({active,draft,setDraft,save,remove,busy}:{active:ModuleKey;draft:Item|null;setDraft:(item:Item|null)=>void;save:()=>void;remove:(item:Item)=>void;busy:boolean}){
+function Editor({active,draft,setDraft,save,remove,busy}:{active:ModuleKey;draft:Item|null;setDraft:(item:Item|null)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>;remove:(item:Item)=>void;busy:boolean}){
   if(!draft)return <div className="rounded-3xl bg-white p-8 text-gray-500 shadow-sm">Select an item or click Add New.</div>;
   return <div className="rounded-3xl bg-white p-6 shadow-sm">
     <div className="flex items-center justify-between"><h2 className="text-2xl font-black">{draft.id?'Edit':'Add New'}</h2>{draft.id&&<button onClick={()=>remove(draft)} className="rounded-full p-3 text-red-600 hover:bg-red-50"><Trash2/></button>}</div>
-    {active==='products'&&<ProductFields draft={draft} setDraft={setDraft}/>}
+    {active==='products'&&<ProductFields draft={draft} setDraft={setDraft} save={save}/>}
     {active==='cases'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','country','customerIndustry','machineModel','quantity','year','description','images','video','status']}/>}
     {active==='factory'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','category','description','images','video','status']}/>}
     {active==='shipping'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','destinationCountry','destinationPort','machineModel','shippingMethod','shippingDate','description','images','video','status']}/>}
     {active==='blog'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','slug','coverImage','content','seoTitle','seoDescription','status','createdDate']}/>}
     {active==='media'&&<MediaFields draft={draft} setDraft={setDraft}/>}
     {active==='inquiries'&&<GenericFields draft={draft} setDraft={setDraft} fields={['status','name','company','country','port','phone','email','productModel','quantity','message','createdAt']}/>}
-    <div className="mt-7 flex justify-end"><button onClick={save} disabled={busy} className="inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3 font-black text-white disabled:opacity-50">{busy?<LoaderCircle className="animate-spin" size={18}/>:<Save size={18}/>}Save</button></div>
+    <div className="mt-7 flex justify-end"><button onClick={()=>void save()} disabled={busy} className="inline-flex items-center gap-2 rounded-full bg-ink px-7 py-3 font-black text-white disabled:opacity-50">{busy?<LoaderCircle className="animate-spin" size={18}/>:<Save size={18}/>}Save & Publish</button></div>
   </div>;
 }
 
-function ProductFields({draft,setDraft}:{draft:Item;setDraft:(item:Item)=>void}){
+function ProductFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
+  async function attachUploadedMedia(urls:string[]){
+    const next:Item={...draft,image:draft.image||urls[0],images:[...(draft.images||[]),...urls]};
+    setDraft(next);
+    if(next.id)await save(next,next.status==='Draft'?'Photo attached and saved. This product remains a Draft.':'Photo attached, saved and visible on the storefront.');
+  }
   return <div className="mt-6 grid gap-4 md:grid-cols-2">
     {['brand','model','name','slug','shortDescription','description','engine','operatingWeight','bucketCapacity','ratedPower','dimension','fobPrice','moq','deliveryTime','seaFreight','destinationPort','cifPrice','deposit30','balance70','validity','video','pdfBrochure','seoTitle','seoDescription'].map(field=><Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['description','shortDescription','seoDescription'].includes(field)}/>)}
     <Select field="category" options={productCategories} draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/>
-    <Input field="image" draft={draft} setDraft={setDraft}/><MediaUpload onUploaded={urls=>setDraft({...draft,image:draft.image||urls[0],images:[...(draft.images||[]),...urls]})}/>
+    <Input field="image" draft={draft} setDraft={setDraft}/><div><MediaUpload onUploaded={attachUploadedMedia}/><p className="mt-2 text-xs leading-5 text-gray-500">For an existing Published product, uploaded photos are attached and shown on the storefront automatically. For a new product, enter its Model then click Save & Publish.</p></div>
     <ArrayField field="images" draft={draft} setDraft={setDraft}/><Input field="specifications" draft={draft} setDraft={setDraft} textarea/>
   </div>;
 }

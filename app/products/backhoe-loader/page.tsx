@@ -17,3 +17,4 @@ export default async function BackhoeLoaderPage(){
     <ProductListSection products={products}/>
   </div></section>;
 }
+export const dynamic='force-dynamic';
