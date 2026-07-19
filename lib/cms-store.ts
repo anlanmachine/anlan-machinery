@@ -4,7 +4,7 @@ import {createClient} from '@supabase/supabase-js';
 import {neon} from '@neondatabase/serverless';
 import sharp from 'sharp';
 
-export type CmsCollection='products'|'cases'|'factory'|'shipping'|'blog'|'media'|'inquiries';
+export type CmsCollection='products'|'productCategories'|'cases'|'factory'|'shipping'|'blog'|'media'|'inquiries';
 
 const DATA_DIR=path.join(process.cwd(),'data');
 const collectionFile=(collection:CmsCollection)=>path.join(DATA_DIR,collection==='media'?'admin-media.json':`${collection}.json`);

@@ -9,9 +9,9 @@ export const CATEGORY_LINKS=[
  {key:'crane',path:'crane',label:'Crane',title:'Cranes'},
  {key:'mixer',path:'concrete-mixer',label:'Concrete Mixer',title:'Self Loading Concrete Mixers'}
 ] as const;
-export type CatalogCategory=typeof CATEGORY_LINKS[number]['key'];
+export type CatalogCategory=typeof CATEGORY_LINKS[number]['key']|(string&{});
 export type ProductNavKey=typeof CATEGORY_LINKS[number]['key'];
-export const categoryForProduct=(category:string)=>CATEGORY_LINKS.find(item=>item.key===category)||CATEGORY_LINKS[0];
+export const categoryForProduct=(category:string)=>CATEGORY_LINKS.find(item=>item.key===category)||{key:category,path:'',label:category.replaceAll('-',' ').replace(/\b\w/g,letter=>letter.toUpperCase()),title:category};
 
 export const PRODUCT_CATEGORY_OPTIONS=[
  {value:'excavator',label:'Excavator',subCategory:'crawler-excavator'},
@@ -24,23 +24,24 @@ export const PRODUCT_CATEGORY_OPTIONS=[
  {value:'crane',label:'Crane',subCategory:'crane'},
  {value:'mixer',label:'Concrete Mixer',subCategory:'self-loading-concrete-mixer'}
 ] as const;
+export const DEFAULT_PRODUCT_CATEGORIES=PRODUCT_CATEGORY_OPTIONS.map(option=>({id:option.value,label:option.label,subCategory:option.subCategory}));
 
-const CATEGORY_ALIASES:Record<string,CatalogCategory>={
+const CATEGORY_ALIASES:Record<string,string>={
  excavator:'excavator',loader:'loader','backhoe-loader':'backhoe-loader',backhoe:'backhoe-loader',
  'road-roller':'roller',roller:'roller',forklift:'forklift','dump-truck':'dump-truck',
  'motor-grader':'grader',grader:'grader',crane:'crane','concrete-mixer':'mixer',mixer:'mixer'
 };
-const VALID_SUBCATEGORIES:Record<CatalogCategory,string[]>={
+const VALID_SUBCATEGORIES:Record<string,string[]>={
  excavator:['crawler-excavator','wheel-excavator','mini-excavator'],loader:['wheel-loader','skid-steer-loader'],
  'backhoe-loader':['backhoe-loader'],roller:['single-drum-roller','pneumatic-roller'],forklift:['forklift'],
  'dump-truck':['dump-truck'],grader:['motor-grader'],crane:['crane'],mixer:['self-loading-concrete-mixer']
 };
 export function normalizeProductCategory(value:string):CatalogCategory|null{
  const key=value.toLowerCase().trim().replace(/[ _]+/g,'-');
- return CATEGORY_ALIASES[key]||null;
+ return CATEGORY_ALIASES[key]||(/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(key)?key:null);
 }
-export function defaultSubCategory(category:CatalogCategory){return PRODUCT_CATEGORY_OPTIONS.find(option=>option.value===category)!.subCategory;}
+export function defaultSubCategory(category:CatalogCategory){return PRODUCT_CATEGORY_OPTIONS.find(option=>option.value===category)?.subCategory||category;}
 export function normalizeSubCategory(category:CatalogCategory,value:string){
  const key=value.toLowerCase().trim().replace(/[ _]+/g,'-');
- return VALID_SUBCATEGORIES[category].includes(key)?key:defaultSubCategory(category);
+ return !key||VALID_SUBCATEGORIES[category]?.includes(key)===false?defaultSubCategory(category):key;
 }

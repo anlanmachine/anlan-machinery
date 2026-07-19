@@ -3,12 +3,12 @@ import {requireAdmin} from '@/lib/admin-auth';
 import {CmsCollection,nowIso,readCollection,slugify,writeCollection} from '@/lib/cms-store';
 import {readFile} from 'fs/promises';
 import path from 'path';
-import {normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
+import {DEFAULT_PRODUCT_CATEGORIES,normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 
-const allowed=new Set<CmsCollection>(['products','cases','factory','shipping','blog','media','inquiries']);
+const allowed=new Set<CmsCollection>(['products','productCategories','cases','factory','shipping','blog','media','inquiries']);
 
 function normalizeCollection(value:string):CmsCollection{
   if(!allowed.has(value as CmsCollection))throw new Error('Unknown collection.');
@@ -21,6 +21,7 @@ async function readItems(collection:CmsCollection){
     try{fallback=JSON.parse(await readFile(path.join(process.cwd(),'data','products.json'),'utf8'));}catch{}
     return readCollection<Record<string,unknown>[]>(collection,fallback);
   }
+  if(collection==='productCategories')return readCollection<Record<string,unknown>[]>(collection,DEFAULT_PRODUCT_CATEGORIES);
   return readCollection<Record<string,unknown>[]>(collection,[]);
 }
 
@@ -28,6 +29,13 @@ function normalize(collection:CmsCollection,input:Record<string,unknown>){
   const item={...input} as Record<string,unknown>;
   const title=String(item.title||item.name||item.model||item.caseTitle||'item');
   if(!item.id)item.id=`${collection}-${slugify(String(item.slug||title))||Date.now()}`;
+  if(collection==='productCategories'){
+    const id=slugify(String(item.id||item.label||''));
+    if(!id)throw new Error('Category name is required.');
+    item.id=id;
+    item.label=String(item.label||id).trim();
+    item.subCategory=slugify(String(item.subCategory||id))||id;
+  }
   if(collection==='products'){
     const brand=String(item.brand||'XCMG').trim();
     const model=String(item.model||'').trim();
@@ -84,7 +92,12 @@ export async function DELETE(request:NextRequest,{params}:{params:Promise<{colle
     await requireAdmin();
     const collection=normalizeCollection((await params).collection),id=request.nextUrl.searchParams.get('id');
     if(!id)return NextResponse.json({success:false,error:'ID is required.'},{status:400});
-    const items=await readItems(collection),next=items.filter(item=>item.id!==id);
+    const items=await readItems(collection);
+    if(collection==='productCategories'){
+      const products=await readItems('products');
+      if(products.some(product=>String(product.category)===id))throw new Error('This category is still used by a product. Move those products first.');
+    }
+    const next=items.filter(item=>item.id!==id);
     await writeCollection(collection,next);
     return NextResponse.json({success:true});
   }catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Delete failed.'},{status:400});}
