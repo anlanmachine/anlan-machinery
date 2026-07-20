@@ -1,4 +1,4 @@
-﻿import type {Metadata} from 'next';
+import type {Metadata} from 'next';
 import Image from 'next/image';
 import {Anchor,Box,Container,Ship,Truck} from 'lucide-react';
 import {IndustrialHero} from '@/components/industrial-hero';
@@ -7,7 +7,7 @@ import {VideoGrid} from '@/components/video-grid';
 import {getMedia} from '@/lib/media';
 import {readCollection} from '@/lib/cms-store';
 
-export const metadata:Metadata={title:{absolute:'Heavy Equipment Shipping from China | ANLAN Machinery'},description:'Container, flat rack, RoRo and bulk cargo shipping for excavators, loaders and road machinery from China to global destination ports.',keywords:['heavy equipment shipping China','excavator RoRo shipping','flat rack machinery'],alternates:{canonical:'/shipping'}};
+export const metadata:Metadata={title:{absolute:'Heavy Equipment Shipping from China | AOLAN Machinery'},description:'Container, flat rack, RoRo and bulk cargo shipping for excavators, loaders and road machinery from China to global destination ports.',keywords:['heavy equipment shipping China','excavator RoRo shipping','flat rack machinery'],alternates:{canonical:'/shipping'}};
 const process=['Inquiry','Quotation','PI','Deposit','Production','Inspection','Loading','Shipping','Arrival','After Sales'];
 
 export default async function Shipping(){

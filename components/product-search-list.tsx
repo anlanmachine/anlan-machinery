@@ -41,7 +41,7 @@ export function ProductSearchList({products,emptyMessage,searchLabel='Search mac
   if(products.length===0){
     return <div className="mt-12 rounded-3xl border border-dashed border-black/15 bg-white p-8 text-center shadow-sm">
       <h2 className="text-2xl font-black">Available on request</h2>
-      <p className="mx-auto mt-3 max-w-2xl text-gray-500">{emptyMessage||'This category is available through ANLAN Machinery sourcing service. Send us your model, quantity and destination port for a fast quotation.'}</p>
+      <p className="mx-auto mt-3 max-w-2xl text-gray-500">{emptyMessage||'This category is available through AOLAN Machinery sourcing service. Send us your model, quantity and destination port for a fast quotation.'}</p>
       <div className="mt-6 flex flex-wrap justify-center gap-3"><a href={wa('Hi, I want a quotation for construction machinery. Please send available models, price, specs, and shipping details.')} target="_blank" rel="noopener" className="inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-bold text-white"><MessageCircle size={17}/>Request Quote</a><a href={COMPANY_EMAIL_LINK} className="inline-flex items-center gap-2 rounded-full border border-black/15 px-6 py-3 font-bold"><Mail size={17}/>Email: {COMPANY_EMAIL}</a></div>
     </div>;
   }
@@ -64,7 +64,7 @@ export function ProductSearchList({products,emptyMessage,searchLabel='Search mac
     {visible.length===0?<div className="mt-6 rounded-3xl border border-dashed border-black/15 bg-white p-8 text-center">
       <h2 className="text-2xl font-black">No matching machine found</h2>
       <p className="mt-3 text-gray-500">Try another model number like XE215G, ZL50GN, XC870K, GR215, or send us your required model for sourcing.</p>
-      <a href={wa(`Hi, I am looking for ${query}. Please help me find this machine and send quotation.`)} target="_blank" rel="noopener" className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-bold text-white"><MessageCircle size={17}/>Ask ANLAN to source it</a>
+      <a href={wa(`Hi, I am looking for ${query}. Please help me find this machine and send quotation.`)} target="_blank" rel="noopener" className="mt-6 inline-flex items-center gap-2 rounded-full bg-ink px-6 py-3 font-bold text-white"><MessageCircle size={17}/>Ask AOLAN to source it</a>
     </div>:<div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">{visible.map(product=><article key={product.id} className="group overflow-hidden rounded-3xl bg-white shadow-sm ring-1 ring-black/5 transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:ring-black/10">
       <Link href={product.href} className="block">
         <div className="relative aspect-[4/3] overflow-hidden bg-[#f3f5f2]">

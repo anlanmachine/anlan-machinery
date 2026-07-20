@@ -25,7 +25,7 @@ export function productDescription(product:CatalogProduct){
   const machineName=`${product.brand||'XCMG'} ${product.model}`.trim().toLowerCase();
   const looksLikeImportedDocument=/proforma invoice|pending exact-model|outline dimensions|main specifications|product brochure|image source|verification status|configuration parameters|manufacturer|customer service|unit address|no further information|(?:\b[A-Z]\s){5}/i.test(text);
   const isOnlyIdentifier=text.toLowerCase()===machineName||text.toLowerCase()===String(product.model||'').toLowerCase()||text.length<24;
-  if(!text||mojibake.test(text)||looksLikeImportedDocument||isOnlyIdentifier||text.length>420)return `Factory-new ${product.brand||'XCMG'} ${product.model} ${product.subCategory.replaceAll('-',' ')} available for international delivery, with quotation and shipping support from ANLAN Machinery.`;
+  if(!text||mojibake.test(text)||looksLikeImportedDocument||isOnlyIdentifier||text.length>420)return `Factory-new ${product.brand||'XCMG'} ${product.model} ${product.subCategory.replaceAll('-',' ')} available for international delivery, with quotation and shipping support from AOLAN Machinery.`;
   return text;
 }
 export function productSpecifications(product:CatalogProduct){

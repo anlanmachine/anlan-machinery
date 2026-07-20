@@ -69,7 +69,7 @@ export function AdminDashboard(){
   return <main className="min-h-screen bg-[#f3f5f2] pt-20">
     <div className="mx-auto grid max-w-[1600px] gap-5 px-4 py-6 lg:grid-cols-[260px_1fr]">
       <aside className="rounded-3xl bg-ink p-4 text-white lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
-        <div className="px-3 py-4"><b className="text-xl">ANLAN Admin</b><p className="mt-1 text-xs text-white/50">Content management</p></div>
+        <div className="px-3 py-4"><b className="text-xl">AOLAN Admin</b><p className="mt-1 text-xs text-white/50">Content management</p></div>
         <nav className="mt-3 space-y-1">{modules.map(item=>{const Icon=item.icon;return <button key={item.key} onClick={()=>{setActive(item.key);setDraft(null);setMessage('');}} className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-bold ${active===item.key?'bg-lime text-ink':'text-white/75 hover:bg-white/10'}`}><Icon size={18}/>{item.label}</button>})}</nav>
         <div className="mt-6 space-y-2 px-3"><Link href="/" target="_blank" className="flex items-center gap-2 text-sm font-bold text-white/70"><Eye size={16}/>Preview website</Link><button onClick={logout} className="flex items-center gap-2 text-sm font-bold text-white/70"><LogOut size={16}/>Logout</button></div>
       </aside>

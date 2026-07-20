@@ -1,6 +1,6 @@
-# ANLAN Machinery Website
+# AOLAN Machinery Website
 
-Production-ready B2B construction machinery export website for ANLAN Machinery.
+Production-ready B2B construction machinery export website for AOLAN Machinery.
 
 The project includes the full website source code, local product database, local product images, imported company/factory/shipping/customer media, SEO pages, generated blog content, sitemap, robots configuration, admin product manager, and WhatsApp inquiry flow.
 
@@ -123,7 +123,7 @@ Copy `.env.example` to `.env.local`.
 
 | Variable | Required | Description |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SITE_URL` | Yes | Public website URL, for SEO canonical URLs and metadata. Example: `https://anlanmachinery.com` |
+| `NEXT_PUBLIC_SITE_URL` | Yes | Public website URL, for SEO canonical URLs and metadata. Example: `https://aolanmachinery.com` |
 | `ADMIN_PASSWORD` | Yes | Password for `/admin`. Change before public deployment. |
 | `LEADS_TO_EMAIL` | Optional | Email address that receives inquiry notifications. |
 | `RESEND_API_KEY` | Optional | Enables email sending through Resend. |
@@ -238,7 +238,7 @@ npm run start
 
 ```nginx
 server {
-  server_name anlanmachinery.com www.anlanmachinery.com;
+  server_name aolanmachinery.com www.aolanmachinery.com;
 
   location / {
     proxy_pass http://127.0.0.1:3010;
@@ -258,7 +258,7 @@ server {
 ### Vercel
 
 1. Open Vercel Project → Settings → Domains.
-2. Add your domain, for example `anlanmachinery.com` and `www.anlanmachinery.com`.
+2. Add your domain, for example `aolanmachinery.com` and `www.aolanmachinery.com`.
 3. Add the DNS records Vercel shows. Usually:
 
 ```text
@@ -266,7 +266,7 @@ A      @      76.76.21.21
 CNAME  www    cname.vercel-dns.com
 ```
 
-4. Update `NEXT_PUBLIC_SITE_URL` to `https://anlanmachinery.com`.
+4. Update `NEXT_PUBLIC_SITE_URL` to `https://aolanmachinery.com`.
 5. Redeploy.
 
 ### Netlify
@@ -292,7 +292,7 @@ If Git is installed:
 ```bash
 git init
 git add .
-git commit -m "Initial ANLAN Machinery website delivery"
+git commit -m "Initial AOLAN Machinery website delivery"
 git branch -M main
 git remote add origin https://github.com/YOUR_ACCOUNT/YOUR_REPOSITORY.git
 git push -u origin main
@@ -367,7 +367,7 @@ Admin URL:
 Login email:
 
 ```text
-Anlanmachinery@gmail.com
+Aolanmachinery@gmail.com
 ```
 
 Required environment variable:
@@ -394,7 +394,7 @@ Local development stores content in `data/*.json` and files in `public/uploads/a
 Important for Vercel: Vercel's local filesystem is not permanent after deployments or serverless restarts. For production CMS persistence, configure Supabase:
 
 1. Create a Supabase project.
-2. Create a public Storage bucket named `anlan-media`.
+2. Create a public Storage bucket named `aolan-media`.
 3. Run this SQL in Supabase SQL Editor:
 
 ```sql
@@ -410,9 +410,9 @@ create table if not exists public.cms_store (
 ```text
 NEXT_PUBLIC_SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_STORAGE_BUCKET=anlan-media
+SUPABASE_STORAGE_BUCKET=aolan-media
 ADMIN_PASSWORD=
-LEADS_TO_EMAIL=Anlanmachinery@gmail.com
+LEADS_TO_EMAIL=Aolanmachinery@gmail.com
 ```
 
 5. Redeploy from Vercel.

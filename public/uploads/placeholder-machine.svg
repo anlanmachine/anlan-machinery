@@ -8,5 +8,5 @@
   <path d="M330 510h280l70-120h130l90 140H760l-45-70h-95l-45 70H330z" fill="#d4ec39"/>
   <path d="M780 390l155-80 32 58-135 70z" fill="#1f2933"/>
   <text x="600" y="250" text-anchor="middle" font-family="Arial, sans-serif" font-size="52" font-weight="800" fill="#1f2933">Waiting For Material</text>
-  <text x="600" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#5f6b5f">Upload product photo in ANLAN Admin</text>
+  <text x="600" y="315" text-anchor="middle" font-family="Arial, sans-serif" font-size="28" fill="#5f6b5f">Upload product photo in AOLAN Admin</text>
 </svg>

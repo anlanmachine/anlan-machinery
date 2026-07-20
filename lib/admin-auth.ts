@@ -1,8 +1,8 @@
 import {cookies} from 'next/headers';
 import crypto from 'crypto';
 
-export const ADMIN_EMAIL='Anlanmachinery@gmail.com';
-export const ADMIN_COOKIE='anlan_admin';
+export const ADMIN_EMAIL='Aolanmachinery@gmail.com';
+export const ADMIN_COOKIE='aolan_admin';
 
 function secret(){
   const value=process.env.ADMIN_PASSWORD;

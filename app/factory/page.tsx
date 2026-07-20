@@ -1,4 +1,4 @@
-﻿import type {Metadata} from 'next';
+import type {Metadata} from 'next';
 import {ClipboardCheck,Factory,HardHat,ScanSearch,Warehouse} from 'lucide-react';
 import {IndustrialHero} from '@/components/industrial-hero';
 import {MediaGallery} from '@/components/media-gallery';
@@ -6,7 +6,7 @@ import {VideoGrid} from '@/components/video-grid';
 import {getMedia} from '@/lib/media';
 import {readCollection} from '@/lib/cms-store';
 
-export const metadata:Metadata={title:{absolute:'Machinery Yard, Inspection & Factory Videos | ANLAN'},description:'Explore ANLAN Machinery equipment yards, stock machines, inspection workflow, testing, loading preparation and factory videos.',keywords:['construction machinery factory China','equipment yard','machine inspection'],alternates:{canonical:'/factory'}};
+export const metadata:Metadata={title:{absolute:'Machinery Yard, Inspection & Factory Videos | AOLAN'},description:'Explore AOLAN Machinery equipment yards, stock machines, inspection workflow, testing, loading preparation and factory videos.',keywords:['construction machinery factory China','equipment yard','machine inspection'],alternates:{canonical:'/factory'}};
 const areas=[[Factory,'Factory Overview','Manufacturer and supply-network coordination for current Chinese machinery models.'],[Warehouse,'Warehouse & Stock Yard','Available machines and export-ready inventory photographed on site.'],[ScanSearch,'Inspection Center','Identity, serial number, leaks, wear, controls and safety systems checked before loading.'],[HardHat,'Machine Assembly & Preparation','Attachments, transport dimensions and customer configurations confirmed before dispatch.'],[ClipboardCheck,'Machine Testing','Cold start, travel, hydraulics, steering, braking and working functions recorded on video.']];
 
 export default async function FactoryPage(){

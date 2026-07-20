@@ -6,9 +6,9 @@ import {ContactActions,EmailLink,LeadForm} from '@/components/ui';
 const pages:Record<string,{title:string;kicker:string;body:string;keywords:string[]}>= {
   'quality-control':{title:'Pre-shipment machinery inspection.',kicker:'Quality control',body:'Our inspection workflow covers model and serial checks, operating functions, leaks, visible wear, safety systems, photos, videos and third-party inspection when requested.',keywords:['machinery inspection China','pre shipment inspection']},
   faq:{title:'Machinery buying questions, answered clearly.',kicker:'Buyer FAQ',body:'Clear answers about machine condition, configurations, warranty, inspection, payment, lead time, parts, documents and international freight.',keywords:['machinery buying FAQ','import equipment China']},
-  contact:{title:'Request a machinery quotation.',kicker:'Contact ANLAN',body:'Send the model, quantity and destination port. Our export team will reply with availability, specifications, pricing and shipping options.',keywords:['machinery quotation','contact equipment exporter']},
-  'privacy-policy':{title:'Privacy policy',kicker:'Legal',body:'We collect only the information needed to respond to inquiries, prepare quotations and provide customer service. We do not sell personal information.',keywords:['ANLAN privacy policy']},
-  terms:{title:'Terms of service',kicker:'Legal',body:'Product availability, specifications and freight rates must be confirmed in a formal quotation. Final commercial terms are defined by the signed contract and invoice.',keywords:['ANLAN terms']}
+  contact:{title:'Request a machinery quotation.',kicker:'Contact AOLAN',body:'Send the model, quantity and destination port. Our export team will reply with availability, specifications, pricing and shipping options.',keywords:['machinery quotation','contact equipment exporter']},
+  'privacy-policy':{title:'Privacy policy',kicker:'Legal',body:'We collect only the information needed to respond to inquiries, prepare quotations and provide customer service. We do not sell personal information.',keywords:['AOLAN privacy policy']},
+  terms:{title:'Terms of service',kicker:'Legal',body:'Product availability, specifications and freight rates must be confirmed in a formal quotation. Final commercial terms are defined by the signed contract and invoice.',keywords:['AOLAN terms']}
 };
 
 export async function generateMetadata({params}:{params:Promise<{page:string}>}):Promise<Metadata>{
