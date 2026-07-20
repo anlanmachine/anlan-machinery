@@ -1,6 +1,6 @@
 export const WHATSAPP='8618715467045';
 export const COMPANY_NAME='AOLAN Machinery';
-export const COMPANY_LEGAL_NAME='Hefei Aolan Engineering Machinery Trading Co., Ltd.';
+export const COMPANY_LEGAL_NAME='Xuzhou Aolan Engineering Machinery Trading Co., Ltd.';
 export const COMPANY_EMAIL='Aolanmachinery@gmail.com';
 export const COMPANY_EMAIL_LINK=`mailto:${COMPANY_EMAIL}`;
 export const DEFAULT_MESSAGE='Hi, I want to get quotation for machinery. Please send price, specs, and shipping details.';
