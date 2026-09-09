@@ -102,8 +102,8 @@ function Editor({active,draft,setDraft,save,remove,busy,categoryOptions}:{active
     <div className="flex items-center justify-between"><h2 className="text-2xl font-black">{draft.id?'Edit':'Add New'}</h2>{draft.id&&<button onClick={()=>remove(draft)} className="rounded-full p-3 text-red-600 hover:bg-red-50"><Trash2/></button>}</div>
     {active==='products'&&<ProductFields draft={draft} setDraft={setDraft} save={save} categoryOptions={categoryOptions}/>}
     {active==='productCategories'&&<CategoryFields draft={draft} setDraft={setDraft}/>}
-    {active==='cases'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','country','customerIndustry','machineModel','quantity','year','description','images','video','status']}/>}
-    {active==='factory'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','category','description','images','video','status']}/>}
+    {active==='cases'&&<CaseFields draft={draft} setDraft={setDraft} save={save}/>}
+    {active==='factory'&&<FactoryFields draft={draft} setDraft={setDraft} save={save}/>}
     {active==='shipping'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','destinationCountry','destinationPort','machineModel','shippingMethod','shippingDate','description','images','video','status']}/>}
     {active==='homeShipments'&&<HomeShipmentFields draft={draft} setDraft={setDraft} save={save}/>}
     {active==='blog'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','slug','coverImage','content','seoTitle','seoDescription','status','createdDate']}/>}
@@ -166,6 +166,47 @@ function HomeShipmentFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Ite
   </div>;
 }
 
+function CaseFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
+  return <ContentMediaFields draft={draft} setDraft={setDraft} save={save} folder="cases" heading="Customer case media" description="Replace the cover photo, add gallery photos, or replace the case video. Published changes appear on the Cases page automatically." fields={['title','country','customerIndustry','machineModel','quantity','year','description','status']}/>;
+}
+
+function FactoryFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
+  return <ContentMediaFields draft={draft} setDraft={setDraft} save={save} folder="factory" heading="Factory media" description="Replace the cover photo, add gallery photos, or replace the factory video. Published changes appear on the Factory page automatically." fields={['title','category','description','status']}/>;
+}
+
+function ContentMediaFields({draft,setDraft,save,folder,heading,description,fields}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>;folder:'cases'|'factory';heading:string;description:string;fields:string[]}){
+  const images=Array.isArray(draft.images)?draft.images.map(String).filter(Boolean):[];
+  async function persist(next:Item,message:string){
+    setDraft(next);
+    if(next.id)await save(next,message);
+  }
+  async function replaceCover(urls:string[]){
+    const image=urls[0];
+    if(!image)return;
+    await persist({...draft,images:[image,...images.slice(1)]},'Cover photo replaced and published.');
+  }
+  async function addPhotos(urls:string[]){
+    if(!urls.length)return;
+    await persist({...draft,images:[...images,...urls]},`${urls.length} gallery photo${urls.length===1?'':'s'} added.`);
+  }
+  async function removePhoto(image:string){
+    await persist({...draft,images:images.filter(item=>item!==image)},'Photo removed from this page.');
+  }
+  async function replaceVideo(urls:string[]){
+    const video=urls[0];
+    if(!video)return;
+    await persist({...draft,video},'Video replaced and published.');
+  }
+  async function removeVideo(){
+    await persist({...draft,video:''},'Video removed from this page.');
+  }
+  return <div className="mt-6 space-y-7">
+    <section className="grid gap-4 md:grid-cols-2">{fields.map(field=>field==='status'?<Select key={field} field={field} options={statuses} draft={draft} setDraft={setDraft}/>:<Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={field==='description'}/>)}</section>
+    <section className="rounded-2xl bg-sand p-5"><p className="font-black">{heading}</p><p className="mt-1 text-sm leading-6 text-gray-600">{description}</p><div className="mt-5 grid gap-4 sm:grid-cols-2">{images.map((image,index)=><div className="overflow-hidden rounded-2xl border border-black/10 bg-white" key={image}><img src={image} alt={`${draft.title||heading} ${index+1}`} className="aspect-[4/3] w-full object-cover"/><div className="flex items-center justify-between gap-3 p-3"><span className="text-xs font-black">{index===0?'Cover photo':`Gallery photo ${index}`}</span><button type="button" onClick={()=>void removePhoto(image)} className="text-xs font-black text-red-600">Remove</button></div></div>)}</div>{!images.length&&<div className="mt-5 grid aspect-[4/3] place-items-center rounded-2xl border border-dashed border-black/20 bg-white text-sm text-gray-500">No photos uploaded yet</div>}<div className="mt-5 flex flex-wrap gap-3"><MediaUpload label="Replace cover photo" accept="image/jpeg,image/png,image/webp" folder={folder} multiple={false} onUploaded={urls=>void replaceCover(urls)}/><MediaUpload label="Add gallery photos" accept="image/jpeg,image/png,image/webp" folder={folder} onUploaded={urls=>void addPhotos(urls)}/></div><p className="mt-3 text-xs leading-5 text-gray-500">The first photo is the cover used at the top of the card. New photos are optimized automatically.</p></section>
+    <section className="rounded-2xl border border-black/10 p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-black">Video</p><p className="mt-1 text-sm text-gray-500">MP4 only. It will play directly on the public page.</p></div>{draft.video&&<button type="button" onClick={()=>void removeVideo()} className="text-sm font-black text-red-600">Remove video</button>}</div>{draft.video&&<video controls playsInline preload="metadata" className="mt-4 aspect-video w-full rounded-xl bg-black"><source src={draft.video} type="video/mp4"/></video>}<div className="mt-4"><MediaUpload label={draft.video?'Replace video':'Upload video'} accept="video/mp4" folder={folder} multiple={false} onUploaded={urls=>void replaceVideo(urls)}/></div></section>
+  </div>;
+}
+
 function GenericFields({draft,setDraft,fields}:{draft:Item;setDraft:(item:Item)=>void;fields:string[]}){
   return <div className="mt-6 grid gap-4 md:grid-cols-2">{fields.map(field=>field==='status'?<Select key={field} field={field} options={field==='status'&&draft.email?inquiryStatuses:statuses} draft={draft} setDraft={setDraft}/>:field==='images'?<><ArrayField key={field} field={field} draft={draft} setDraft={setDraft}/><MediaUpload onUploaded={urls=>setDraft({...draft,images:[...(draft.images||[]),...urls]})}/></>:<Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['description','content','message'].includes(field)}/>)}</div>;
 }
@@ -186,7 +227,7 @@ function ArrayField({field,draft,setDraft}:{field:string;draft:Item;setDraft:(it
 function Select({field,options,draft,setDraft}:{field:string;options:string[];draft:Item;setDraft:(item:Item)=>void}){
   return <label className="text-sm font-bold">{field.replace(/([A-Z])/g,' $1')}<select value={draft[field]||options[0]} onChange={e=>setDraft({...draft,[field]:e.target.value})} className="mt-2 w-full rounded-xl border border-black/15 bg-white px-4 py-3">{options.map(item=><option key={item}>{item}</option>)}</select></label>;
 }
-function MediaUpload({onUploaded,label='Upload',accept='image/jpeg,image/png,image/webp,video/mp4,application/pdf'}:{onUploaded:(urls:string[])=>void;label?:string;accept?:string}){
+function MediaUpload({onUploaded,label='Upload',accept='image/jpeg,image/png,image/webp,video/mp4,application/pdf',folder='admin',multiple=true}:{onUploaded:(urls:string[])=>void;label?:string;accept?:string;folder?:string;multiple?:boolean}){
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
   async function upload(files:FileList|null){
     if(!files?.length)return;
@@ -196,7 +237,7 @@ function MediaUpload({onUploaded,label='Upload',accept='image/jpeg,image/png,ima
       const prepared=await Promise.all([...files].map(prepareUploadFile));
       const form=new FormData();
       prepared.forEach(file=>form.append('files',file));
-      form.append('folder','admin');
+      form.append('folder',folder);
       setNote(`Uploading ${prepared.length} file(s)...`);
       const response=await fetch('/api/admin/upload',{method:'POST',body:form,signal:controller.signal});
       const result=await response.json().catch(()=>({success:false,error:'Upload failed. Please try a smaller JPG, PNG or WebP image.'}));
@@ -214,7 +255,7 @@ function MediaUpload({onUploaded,label='Upload',accept='image/jpeg,image/png,ima
     }
   }
   return <div className="space-y-2">
-    <label className={`inline-flex items-center justify-center gap-2 rounded-xl border border-black/15 px-4 py-3 font-black ${busy?'cursor-wait opacity-70':'cursor-pointer hover:border-black'}`}><Upload size={18}/>{busy?'Uploading...':label}<input type="file" multiple accept={accept} className="hidden" disabled={busy} onChange={e=>{void upload(e.target.files);e.currentTarget.value='';}}/></label>
+    <label className={`inline-flex items-center justify-center gap-2 rounded-xl border border-black/15 px-4 py-3 font-black ${busy?'cursor-wait opacity-70':'cursor-pointer hover:border-black'}`}><Upload size={18}/>{busy?'Uploading...':label}<input type="file" multiple={multiple} accept={accept} className="hidden" disabled={busy} onChange={e=>{void upload(e.target.files);e.currentTarget.value='';}}/></label>
     {note&&<p className="text-xs font-bold text-green-700">{note}</p>}
     {error&&<p className="text-xs font-bold text-red-600">{error}</p>}
   </div>;
