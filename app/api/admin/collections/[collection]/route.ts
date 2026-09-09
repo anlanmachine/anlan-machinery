@@ -4,11 +4,12 @@ import {CmsCollection,nowIso,readCollection,slugify,writeCollection} from '@/lib
 import {readFile} from 'fs/promises';
 import path from 'path';
 import {DEFAULT_PRODUCT_CATEGORIES,normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
+import {getHomeShipmentSlots} from '@/lib/home-shipments';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
 
-const allowed=new Set<CmsCollection>(['products','productCategories','cases','factory','shipping','blog','media','inquiries']);
+const allowed=new Set<CmsCollection>(['products','productCategories','cases','factory','shipping','blog','media','homeShipments','inquiries']);
 
 function normalizeCollection(value:string):CmsCollection{
   if(!allowed.has(value as CmsCollection))throw new Error('Unknown collection.');
@@ -55,13 +56,29 @@ function normalize(collection:CmsCollection,input:Record<string,unknown>){
     item.localOnly=true;
   }
   if(collection==='blog')item.slug=slugify(String(item.slug||item.title||item.id));
+  if(collection==='homeShipments'){
+    const slot=Number(item.slot);
+    if(!Number.isInteger(slot)||slot<1||slot>6)throw new Error('Choose a valid homepage shipment slot.');
+    item.id=`home-shipment-slot-${slot}`;
+    item.slot=slot;
+    item.title=String(item.title||`Shipping Loading ${slot}`).trim();
+    item.alt=String(item.alt||item.title).trim();
+    item.image=String(item.image||'').trim();
+    if(!item.image)throw new Error('Upload or select a shipment photo first.');
+    item.status=String(item.status||'Published')==='Draft'?'Draft':'Published';
+  }
   item.updatedAt=nowIso();
   if(!item.createdAt)item.createdAt=nowIso();
   return item;
 }
 
 export async function GET(_:NextRequest,{params}:{params:Promise<{collection:string}>}){
-  try{await requireAdmin();return NextResponse.json(await readItems(normalizeCollection((await params).collection)),{headers:{'Cache-Control':'no-store'}});}
+  try{
+    await requireAdmin();
+    const collection=normalizeCollection((await params).collection);
+    const items=collection==='homeShipments'?await getHomeShipmentSlots():await readItems(collection);
+    return NextResponse.json(items,{headers:{'Cache-Control':'no-store'}});
+  }
   catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Unauthorized'},{status:401});}
 }
 
@@ -80,8 +97,10 @@ export async function PUT(request:NextRequest,{params}:{params:Promise<{collecti
     await requireAdmin();
     const collection=normalizeCollection((await params).collection),items=await readItems(collection),item=normalize(collection,await request.json());
     const index=items.findIndex(existing=>existing.id===item.id);
-    if(index<0)return NextResponse.json({success:false,error:'Item not found.'},{status:404});
-    items[index]=item;
+    if(index<0){
+      if(collection!=='homeShipments')return NextResponse.json({success:false,error:'Item not found.'},{status:404});
+      items.unshift(item);
+    }else items[index]=item;
     await writeCollection(collection,items);
     return NextResponse.json({success:true,item});
   }catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Save failed.'},{status:400});}

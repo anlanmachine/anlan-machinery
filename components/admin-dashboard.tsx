@@ -5,9 +5,9 @@ import {BarChart3,Edit3,Eye,FileText,FolderOpen,ImagePlus,Inbox,LayoutDashboard,
 import {defaultSubCategory} from '@/lib/catalog-config';
 
 type Item=Record<string,any>;
-type ModuleKey='dashboard'|'products'|'productCategories'|'cases'|'factory'|'shipping'|'blog'|'media'|'inquiries';
+type ModuleKey='dashboard'|'products'|'productCategories'|'cases'|'factory'|'shipping'|'homeShipments'|'blog'|'media'|'inquiries';
 const modules:{key:ModuleKey;label:string;icon:any}[]=[
-  {key:'dashboard',label:'Dashboard',icon:LayoutDashboard},{key:'products',label:'Products',icon:Package},{key:'productCategories',label:'Product Categories',icon:FolderOpen},{key:'cases',label:'Cases',icon:FolderOpen},{key:'factory',label:'Factory',icon:BarChart3},{key:'shipping',label:'Shipping',icon:Ship},{key:'blog',label:'Blog',icon:FileText},{key:'media',label:'Media Library',icon:ImagePlus},{key:'inquiries',label:'Inquiries',icon:Inbox}
+  {key:'dashboard',label:'Dashboard',icon:LayoutDashboard},{key:'products',label:'Products',icon:Package},{key:'productCategories',label:'Product Categories',icon:FolderOpen},{key:'cases',label:'Cases',icon:FolderOpen},{key:'factory',label:'Factory',icon:BarChart3},{key:'shipping',label:'Shipping',icon:Ship},{key:'homeShipments',label:'Homepage Shipments',icon:ImagePlus},{key:'blog',label:'Blog',icon:FileText},{key:'media',label:'Media Library',icon:ImagePlus},{key:'inquiries',label:'Inquiries',icon:Inbox}
 ];
 const collections=modules.filter(item=>item.key!=='dashboard').map(item=>item.key);
 const statuses=['Published','Draft'];
@@ -19,6 +19,7 @@ const emptyByModule:Record<string,Item>={
   cases:{title:'',country:'',customerIndustry:'',machineModel:'',quantity:'',year:new Date().getFullYear(),description:'',images:[],video:'',status:'Published'},
   factory:{title:'',description:'',images:[],video:'',category:'Workshop',status:'Published'},
   shipping:{title:'',destinationCountry:'',destinationPort:'',machineModel:'',shippingMethod:'Container',description:'',images:[],video:'',shippingDate:'',status:'Published'},
+  homeShipments:{slot:1,title:'',alt:'',image:'',status:'Published'},
   blog:{title:'',slug:'',coverImage:'',content:'',seoTitle:'',seoDescription:'',status:'Published',createdDate:new Date().toISOString().slice(0,10)},
   media:{title:'',type:'image',url:'',category:'general',status:'Published'},
   inquiries:{status:'New'}
@@ -76,7 +77,7 @@ export function AdminDashboard(){
       <section className="min-w-0">
         <div className="flex flex-wrap items-end justify-between gap-4 rounded-3xl bg-white p-6 shadow-sm">
           <div><p className="eyebrow">Admin panel</p><h1 className="mt-2 text-3xl font-black">{modules.find(item=>item.key===active)?.label}</h1><p className="mt-1 text-sm text-gray-500">Edit content, upload media, publish to storefront.</p></div>
-          {active!=='dashboard'&&active!=='inquiries'&&<button onClick={()=>setDraft({...emptyByModule[active]})} className="inline-flex items-center gap-2 rounded-full bg-lime px-5 py-3 font-black"><Plus size={18}/>Add New</button>}
+          {active!=='dashboard'&&active!=='inquiries'&&active!=='homeShipments'&&<button onClick={()=>setDraft({...emptyByModule[active]})} className="inline-flex items-center gap-2 rounded-full bg-lime px-5 py-3 font-black"><Plus size={18}/>Add New</button>}
         </div>
         {message&&<p role="status" className={`mt-4 rounded-2xl px-5 py-3 text-sm font-bold ${messageType==='error'?'bg-red-50 text-red-700':'bg-green-50 text-green-800'}`}>{message}</p>}
         {active==='dashboard'?<Dashboard stats={stats}/>:<div className="mt-5 grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
@@ -104,6 +105,7 @@ function Editor({active,draft,setDraft,save,remove,busy,categoryOptions}:{active
     {active==='cases'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','country','customerIndustry','machineModel','quantity','year','description','images','video','status']}/>}
     {active==='factory'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','category','description','images','video','status']}/>}
     {active==='shipping'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','destinationCountry','destinationPort','machineModel','shippingMethod','shippingDate','description','images','video','status']}/>}
+    {active==='homeShipments'&&<HomeShipmentFields draft={draft} setDraft={setDraft} save={save}/>}
     {active==='blog'&&<GenericFields draft={draft} setDraft={setDraft} fields={['title','slug','coverImage','content','seoTitle','seoDescription','status','createdDate']}/>}
     {active==='media'&&<MediaFields draft={draft} setDraft={setDraft}/>}
     {active==='inquiries'&&<GenericFields draft={draft} setDraft={setDraft} fields={['status','name','company','country','port','phone','email','productModel','quantity','message','createdAt']}/>}
@@ -140,6 +142,30 @@ function CategoryFields({draft,setDraft}:{draft:Item;setDraft:(item:Item)=>void}
   return <div className="mt-6 space-y-4"><p className="rounded-xl bg-sand p-4 text-sm text-gray-600">Add a category once and it will appear in the product editor. Category ID cannot be changed after saving, so existing products remain correctly grouped.</p>{!draft.id?<Input field="id" draft={draft} setDraft={setDraft}/>:<p className="text-sm font-bold">Category ID: <span className="font-mono text-gray-500">{draft.id}</span></p>}<Input field="label" draft={draft} setDraft={setDraft}/><Input field="subCategory" draft={draft} setDraft={setDraft}/></div>;
 }
 
+function HomeShipmentFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
+  async function replacePhoto(urls:string[]){
+    const image=urls[0];
+    if(!image)return;
+    const next={...draft,image};
+    setDraft(next);
+    await save(next,`Homepage shipment ${draft.slot} photo replaced and published.`);
+  }
+  async function restoreOriginal(){
+    const image=String(draft.originalImage||'');
+    if(!image)return;
+    const next={...draft,image};
+    setDraft(next);
+    await save(next,`Homepage shipment ${draft.slot} restored to its original photo.`);
+  }
+  return <div className="mt-6 space-y-5">
+    <div className="rounded-2xl bg-sand p-4"><p className="font-black">Homepage shipment {draft.slot}</p><p className="mt-1 text-sm leading-6 text-gray-600">This card appears in the six-photo <b>Latest Shipments</b> section on the homepage. Replace only this photo; the other homepage cards stay unchanged.</p></div>
+    <div className="overflow-hidden rounded-2xl border border-black/10 bg-[#f3f5f2]">{draft.image?<img src={draft.image} alt={draft.alt||draft.title||'Homepage shipment preview'} className="aspect-[4/3] w-full object-cover"/>:<div className="grid aspect-[4/3] place-items-center text-sm text-gray-500">No image selected</div>}</div>
+    <div className="flex flex-wrap gap-3"><MediaUpload label="Replace photo" accept="image/jpeg,image/png,image/webp" onUploaded={replacePhoto}/>{draft.originalImage&&<button type="button" onClick={()=>void restoreOriginal()} className="rounded-xl border border-black/15 bg-white px-4 py-3 text-sm font-black hover:border-black">Restore original photo</button>}</div>
+    <p className="text-xs leading-5 text-gray-500">New photos are compressed and stored securely. The replacement is published automatically after upload.</p>
+    <div className="grid gap-4 md:grid-cols-2"><Input field="title" draft={draft} setDraft={setDraft}/><Input field="alt" draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/></div>
+  </div>;
+}
+
 function GenericFields({draft,setDraft,fields}:{draft:Item;setDraft:(item:Item)=>void;fields:string[]}){
   return <div className="mt-6 grid gap-4 md:grid-cols-2">{fields.map(field=>field==='status'?<Select key={field} field={field} options={field==='status'&&draft.email?inquiryStatuses:statuses} draft={draft} setDraft={setDraft}/>:field==='images'?<><ArrayField key={field} field={field} draft={draft} setDraft={setDraft}/><MediaUpload onUploaded={urls=>setDraft({...draft,images:[...(draft.images||[]),...urls]})}/></>:<Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['description','content','message'].includes(field)}/>)}</div>;
 }
@@ -160,7 +186,7 @@ function ArrayField({field,draft,setDraft}:{field:string;draft:Item;setDraft:(it
 function Select({field,options,draft,setDraft}:{field:string;options:string[];draft:Item;setDraft:(item:Item)=>void}){
   return <label className="text-sm font-bold">{field.replace(/([A-Z])/g,' $1')}<select value={draft[field]||options[0]} onChange={e=>setDraft({...draft,[field]:e.target.value})} className="mt-2 w-full rounded-xl border border-black/15 bg-white px-4 py-3">{options.map(item=><option key={item}>{item}</option>)}</select></label>;
 }
-function MediaUpload({onUploaded}:{onUploaded:(urls:string[])=>void}){
+function MediaUpload({onUploaded,label='Upload',accept='image/jpeg,image/png,image/webp,video/mp4,application/pdf'}:{onUploaded:(urls:string[])=>void;label?:string;accept?:string}){
   const [busy,setBusy]=useState(false),[error,setError]=useState(''),[note,setNote]=useState('');
   async function upload(files:FileList|null){
     if(!files?.length)return;
@@ -188,7 +214,7 @@ function MediaUpload({onUploaded}:{onUploaded:(urls:string[])=>void}){
     }
   }
   return <div className="space-y-2">
-    <label className={`inline-flex items-center justify-center gap-2 rounded-xl border border-black/15 px-4 py-3 font-black ${busy?'cursor-wait opacity-70':'cursor-pointer hover:border-black'}`}><Upload size={18}/>{busy?'Uploading...':'Upload'}<input type="file" multiple accept="image/jpeg,image/png,image/webp,video/mp4,application/pdf" className="hidden" disabled={busy} onChange={e=>{void upload(e.target.files);e.currentTarget.value='';}}/></label>
+    <label className={`inline-flex items-center justify-center gap-2 rounded-xl border border-black/15 px-4 py-3 font-black ${busy?'cursor-wait opacity-70':'cursor-pointer hover:border-black'}`}><Upload size={18}/>{busy?'Uploading...':label}<input type="file" multiple accept={accept} className="hidden" disabled={busy} onChange={e=>{void upload(e.target.files);e.currentTarget.value='';}}/></label>
     {note&&<p className="text-xs font-bold text-green-700">{note}</p>}
     {error&&<p className="text-xs font-bold text-red-600">{error}</p>}
   </div>;
