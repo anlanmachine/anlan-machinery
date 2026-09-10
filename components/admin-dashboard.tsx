@@ -176,7 +176,10 @@ function FactoryFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>v
 
 function ContentMediaFields({draft,setDraft,save,folder,heading,description,fields}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>;folder:'cases'|'factory';heading:string;description:string;fields:string[]}){
   const images=Array.isArray(draft.images)?draft.images.map(String).filter(Boolean):[];
+  const videos=Array.isArray(draft.videos)?draft.videos.map(String).filter(Boolean):draft.video?[String(draft.video)]:[];
   async function persist(next:Item,message:string){
+    const nextVideos=Array.isArray(next.videos)?next.videos.map(String).filter(Boolean):next.video?[String(next.video)]:[];
+    next={...next,videos:nextVideos,video:nextVideos[0]||''};
     setDraft(next);
     if(next.id)await save(next,message);
   }
@@ -192,18 +195,24 @@ function ContentMediaFields({draft,setDraft,save,folder,heading,description,fiel
   async function removePhoto(image:string){
     await persist({...draft,images:images.filter(item=>item!==image)},'Photo removed from this page.');
   }
-  async function replaceVideo(urls:string[]){
+  async function addVideos(urls:string[]){
     const video=urls[0];
     if(!video)return;
-    await persist({...draft,video},'Video replaced and published.');
+    await persist({...draft,videos:[...videos,...urls]},`${urls.length} video${urls.length===1?'':'s'} added and published.`);
   }
-  async function removeVideo(){
-    await persist({...draft,video:''},'Video removed from this page.');
+  async function replaceVideo(index:number,urls:string[]){
+    const video=urls[0];
+    if(!video)return;
+    const next=[...videos];next[index]=video;
+    await persist({...draft,videos:next},'Video replaced and published.');
+  }
+  async function removeVideo(index:number){
+    await persist({...draft,videos:videos.filter((_,videoIndex)=>videoIndex!==index)},'Video removed from this page.');
   }
   return <div className="mt-6 space-y-7">
     <section className="grid gap-4 md:grid-cols-2">{fields.map(field=>field==='status'?<Select key={field} field={field} options={statuses} draft={draft} setDraft={setDraft}/>:<Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={field==='description'}/>)}</section>
     <section className="rounded-2xl bg-sand p-5"><p className="font-black">{heading}</p><p className="mt-1 text-sm leading-6 text-gray-600">{description}</p><div className="mt-5 grid gap-4 sm:grid-cols-2">{images.map((image,index)=><div className="overflow-hidden rounded-2xl border border-black/10 bg-white" key={image}><img src={image} alt={`${draft.title||heading} ${index+1}`} className="aspect-[4/3] w-full object-cover"/><div className="flex items-center justify-between gap-3 p-3"><span className="text-xs font-black">{index===0?'Cover photo':`Gallery photo ${index}`}</span><button type="button" onClick={()=>void removePhoto(image)} className="text-xs font-black text-red-600">Remove</button></div></div>)}</div>{!images.length&&<div className="mt-5 grid aspect-[4/3] place-items-center rounded-2xl border border-dashed border-black/20 bg-white text-sm text-gray-500">No photos uploaded yet</div>}<div className="mt-5 flex flex-wrap gap-3"><MediaUpload label="Replace cover photo" accept="image/jpeg,image/png,image/webp" folder={folder} multiple={false} onUploaded={urls=>void replaceCover(urls)}/><MediaUpload label="Add gallery photos" accept="image/jpeg,image/png,image/webp" folder={folder} onUploaded={urls=>void addPhotos(urls)}/></div><p className="mt-3 text-xs leading-5 text-gray-500">The first photo is the cover used at the top of the card. New photos are optimized automatically.</p></section>
-    <section className="rounded-2xl border border-black/10 p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="font-black">Video</p><p className="mt-1 text-sm text-gray-500">MP4 only. It will play directly on the public page.</p></div>{draft.video&&<button type="button" onClick={()=>void removeVideo()} className="text-sm font-black text-red-600">Remove video</button>}</div>{draft.video&&<video controls playsInline preload="metadata" className="mt-4 aspect-video w-full rounded-xl bg-black"><source src={draft.video} type="video/mp4"/></video>}<div className="mt-4"><MediaUpload label={draft.video?'Replace video':'Upload video'} accept="video/mp4" folder={folder} multiple={false} onUploaded={urls=>void replaceVideo(urls)}/></div></section>
+    <section className="rounded-2xl border border-black/10 p-5"><div><p className="font-black">Videos</p><p className="mt-1 text-sm text-gray-500">MP4 only. Each video can be replaced individually and will play directly on the public page.</p></div><div className="mt-4 grid gap-4 md:grid-cols-2">{videos.map((video,index)=><div className="overflow-hidden rounded-2xl border border-black/10 bg-white" key={video}><video controls playsInline preload="metadata" className="aspect-video w-full bg-black"><source src={video} type="video/mp4"/></video><div className="flex flex-wrap items-center gap-2 p-3"><span className="mr-auto text-xs font-black">Video {index+1}</span><MediaUpload label="Replace video" accept="video/mp4" folder={folder} multiple={false} onUploaded={urls=>void replaceVideo(index,urls)}/><button type="button" onClick={()=>void removeVideo(index)} className="text-xs font-black text-red-600">Remove</button></div></div>)}</div>{!videos.length&&<p className="mt-4 rounded-xl bg-sand p-4 text-sm text-gray-500">No videos uploaded yet.</p>}<div className="mt-4"><MediaUpload label="Add video" accept="video/mp4" folder={folder} onUploaded={urls=>void addVideos(urls)}/></div></section>
   </div>;
 }
 

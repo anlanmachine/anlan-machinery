@@ -5,6 +5,7 @@ import {readFile} from 'fs/promises';
 import path from 'path';
 import {DEFAULT_PRODUCT_CATEGORIES,normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
 import {getHomeShipmentSlots} from '@/lib/home-shipments';
+import {getBaseMedia} from '@/lib/media';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -24,6 +25,24 @@ async function readItems(collection:CmsCollection){
   }
   if(collection==='productCategories')return readCollection<Record<string,unknown>[]>(collection,DEFAULT_PRODUCT_CATEGORIES);
   return readCollection<Record<string,unknown>[]>(collection,[]);
+}
+
+async function defaultMediaItem(collection:'factory'|'cases'){
+  const media=await getBaseMedia();
+  const category=collection==='factory'?'factory':'customers';
+  const images=media.images.filter(item=>item.category===category).map(item=>item.src);
+  const videos=media.videos.filter(item=>item.category===category).map(item=>item.src);
+  return collection==='factory'
+    ? {id:'factory-default-media',isDefaultMedia:true,title:'Current Factory Photos & Videos',description:'The factory photos and videos currently shown on the public website. Replace or add media here without affecting other sections.',category:'Factory',images,videos,video:videos[0]||'',status:'Published'}
+    : {id:'cases-default-media',isDefaultMedia:true,title:'Current Customer Case Photos & Videos',description:'The customer photos currently shown on the public website. Replace or add media here without affecting other sections.',country:'',customerIndustry:'',machineModel:'',quantity:'',year:new Date().getFullYear(),images,videos,video:videos[0]||'',status:'Published'};
+}
+
+async function adminItems(collection:CmsCollection){
+  const items=await readItems(collection);
+  if(collection!=='factory'&&collection!=='cases')return items;
+  const defaultId=`${collection==='factory'?'factory':'cases'}-default-media`;
+  if(items.some(item=>String(item.id)===defaultId))return items;
+  return [await defaultMediaItem(collection),...items];
 }
 
 function normalize(collection:CmsCollection,input:Record<string,unknown>){
@@ -56,6 +75,15 @@ function normalize(collection:CmsCollection,input:Record<string,unknown>){
     item.localOnly=true;
   }
   if(collection==='blog')item.slug=slugify(String(item.slug||item.title||item.id));
+  if(collection==='factory'||collection==='cases'){
+    const images=Array.isArray(item.images)?item.images.map(String).filter(Boolean):[];
+    const legacyVideo=String(item.video||'').trim();
+    const videos=Array.isArray(item.videos)?item.videos.map(String).filter(Boolean):legacyVideo?[legacyVideo]:[];
+    item.images=images;
+    item.videos=videos;
+    item.video=videos[0]||'';
+    item.status=String(item.status||'Published')==='Draft'?'Draft':'Published';
+  }
   if(collection==='homeShipments'){
     const slot=Number(item.slot);
     if(!Number.isInteger(slot)||slot<1||slot>6)throw new Error('Choose a valid homepage shipment slot.');
@@ -76,7 +104,7 @@ export async function GET(_:NextRequest,{params}:{params:Promise<{collection:str
   try{
     await requireAdmin();
     const collection=normalizeCollection((await params).collection);
-    const items=collection==='homeShipments'?await getHomeShipmentSlots():await readItems(collection);
+    const items=collection==='homeShipments'?await getHomeShipmentSlots():await adminItems(collection);
     return NextResponse.json(items,{headers:{'Cache-Control':'no-store'}});
   }
   catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Unauthorized'},{status:401});}
@@ -98,7 +126,8 @@ export async function PUT(request:NextRequest,{params}:{params:Promise<{collecti
     const collection=normalizeCollection((await params).collection),items=await readItems(collection),item=normalize(collection,await request.json());
     const index=items.findIndex(existing=>existing.id===item.id);
     if(index<0){
-      if(collection!=='homeShipments')return NextResponse.json({success:false,error:'Item not found.'},{status:404});
+      const isDefaultMedia=(collection==='factory'||collection==='cases')&&String(item.id)===`${collection==='factory'?'factory':'cases'}-default-media`;
+      if(collection!=='homeShipments'&&!isDefaultMedia)return NextResponse.json({success:false,error:'Item not found.'},{status:404});
       items.unshift(item);
     }else items[index]=item;
     await writeCollection(collection,items);
