@@ -8,7 +8,7 @@ export const metadata: Metadata = {
 };
 
 export default function TrackPage() {
-  return <main className="min-h-screen bg-[#eff1ed]">
+  return <div className="min-h-screen bg-[#eff1ed]">
     <section className="bg-ink px-5 pb-32 pt-36 text-white">
       <div className="mx-auto max-w-7xl">
         <p className="text-xs font-black uppercase tracking-[.25em] text-lime">AOLAN MACHINERY · GLOBAL LOGISTICS</p>
@@ -17,5 +17,5 @@ export default function TrackPage() {
       </div>
     </section>
     <ShipmentTracker/>
-  </main>;
+  </div>;
 }
