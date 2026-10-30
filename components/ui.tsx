@@ -14,7 +14,7 @@ export function WhatsApp({label='WhatsApp us',className=''}:{label?:string;class
   return <a className={`inline-flex items-center justify-center gap-2 rounded-full bg-lime px-5 py-3 font-bold text-ink transition hover:scale-[1.02] ${className}`} href={wa()} target="_blank" rel="noopener"><MessageCircle size={18}/>{label}</a>;
 }
 
-const main=[['About','/about'],['Factory','/factory'],['Cases','/case-studies'],['Shipping','/shipping'],['Blog','/blog']];
+const main=[['About','/about'],['Factory','/factory'],['Cases','/case-studies'],['Shipping','/shipping'],['Track Shipment','/track'],['Blog','/blog']];
 const resources=[['Media Center','/media'],['Gallery','/gallery'],['Downloads','/downloads']];
 
 export function Header(){
@@ -40,7 +40,7 @@ function Dropdown({label,href,links}:{label:string;href:string;links:string[][]}
 }
 
 export function Footer(){
-  return <footer className="bg-ink text-white"><div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-4"><div className="md:col-span-2"><div className="text-2xl font-black">AOLAN <span className="text-lime">MACHINERY</span></div><p className="mt-4 max-w-md text-white/60">Professional construction machinery sourcing, inspection and global shipping support from China to your project.</p><p className="mt-4 max-w-md text-xs leading-6 text-white/40">{COMPANY_LEGAL_NAME}</p></div><div><h3 className="font-bold">Explore</h3>{[['Products','/products'],['About','/about'],['Factory','/factory'],['Cases','/case-studies'],['Shipping','/shipping'],['Media','/media'],['Gallery','/gallery'],['Downloads','/downloads']].map(([name,href])=><Link className="mt-3 block text-sm text-white/60 hover:text-lime" href={href} key={name}>{name}</Link>)}</div><div><h3 className="font-bold">Contact</h3><p className="mt-3 text-sm leading-7 text-white/60">Chris Gao<br/>WhatsApp: +86 187 1546 7045<br/><EmailLink className="hover:text-lime"/><br/>Global export service</p></div></div><div className="border-t border-white/10 px-5 py-6 text-center text-xs text-white/40">(c) 2026 AOLAN Machinery | <Link href="/privacy-policy">Privacy</Link> | <Link href="/terms">Terms</Link></div></footer>;
+  return <footer className="bg-ink text-white"><div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 md:grid-cols-4"><div className="md:col-span-2"><div className="text-2xl font-black">AOLAN <span className="text-lime">MACHINERY</span></div><p className="mt-4 max-w-md text-white/60">Professional construction machinery sourcing, inspection and global shipping support from China to your project.</p><p className="mt-4 max-w-md text-xs leading-6 text-white/40">{COMPANY_LEGAL_NAME}</p></div><div><h3 className="font-bold">Explore</h3>{[['Products','/products'],['About','/about'],['Factory','/factory'],['Cases','/case-studies'],['Shipping','/shipping'],['Track Shipment','/track'],['Media','/media'],['Gallery','/gallery'],['Downloads','/downloads']].map(([name,href])=><Link className="mt-3 block text-sm text-white/60 hover:text-lime" href={href} key={name}>{name}</Link>)}</div><div><h3 className="font-bold">Contact</h3><p className="mt-3 text-sm leading-7 text-white/60">Chris Gao<br/>WhatsApp: +86 187 1546 7045<br/><EmailLink className="hover:text-lime"/><br/>Global export service</p></div></div><div className="border-t border-white/10 px-5 py-6 text-center text-xs text-white/40">(c) 2026 AOLAN Machinery | <Link href="/privacy-policy">Privacy</Link> | <Link href="/terms">Terms</Link></div></footer>;
 }
 
 export function LeadForm({compact=false}:{compact?:boolean}){
