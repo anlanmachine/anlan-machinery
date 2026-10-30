@@ -25,7 +25,7 @@ function normalize(body: Record<string, unknown>, publishedBefore?: TrackingShip
     const port = clean(raw.port);
     const date = clean(raw.date, 40);
     const note = clean(raw.note, 200);
-    const status = raw.status === 'completed' || raw.status === 'current' || raw.status === 'planned' ? raw.status : 'planned';
+    const status: ShipmentMilestone['status'] = raw.status === 'completed' || raw.status === 'current' || raw.status === 'planned' ? raw.status : 'planned';
     return { port, date, note, status };
   }).filter(item => item.port);
   const eta = clean(body.eta, 40);
