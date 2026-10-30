@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": "26.x"
   },
   "scripts": {
     "dev": "cross-env NODE_ENV=development node server.js",
