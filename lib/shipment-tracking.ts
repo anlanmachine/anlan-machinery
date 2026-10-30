@@ -1,9 +1,10 @@
 export type ShipmentMilestone = {
   port: string;
   date: string;
-  status: 'completed'|'current'|'planned';
+  status: 'completed' | 'current' | 'planned';
   note?: string;
 };
+
 export type TrackingShipment = {
   blNumber: string;
   containerNumbers: string[];
@@ -13,10 +14,12 @@ export type TrackingShipment = {
   currentVessel?: string;
   nextVessel?: string;
   eta?: string;
-  etaType: 'estimated'|'confirmed'|'unknown';
+  etaType: 'estimated' | 'confirmed' | 'unknown';
   source: 'manual';
+  published: boolean;
   updatedAt: string;
   milestones: ShipmentMilestone[];
 };
-export const normalizeTrackingNumber = (value:string) => value.toUpperCase().replace(/[\s-]/g,'').trim();
-export const isTrackingNumber = (value:string) => /^[A-Z0-9]{7,22}$/.test(value);
+
+export const normalizeTrackingNumber = (value: string) => value.toUpperCase().replace(/[\s-]/g, '').trim();
+export const isTrackingNumber = (value: string) => /^[A-Z0-9]{7,22}$/.test(value);
