@@ -57,6 +57,9 @@ export function ShipmentTracker() {
 
 function ShipmentResult({shipment}: {shipment: TrackingShipment}) {
   const completed = shipment.milestones.filter(x => x.status === 'completed').length;
+  const currentStage = shipment.milestones.find(x => x.status === 'current');
+  const remaining = shipment.milestones.filter(x => x.status === 'planned');
+  const completedPorts = shipment.milestones.filter(x => x.status === 'completed').map(x => x.port);
   const hasCurrent = shipment.milestones.some(x => x.status === 'current');
   const arrival = shipment.milestones.length > 0 && shipment.milestones.every(x => x.status === 'completed');
   const status = arrival ? 'Journey complete' : hasCurrent ? 'In transit' : completed ? 'Latest recorded movement' : 'Awaiting first milestone';
@@ -95,6 +98,14 @@ function ShipmentResult({shipment}: {shipment: TrackingShipment}) {
         })}
       </div>
     </div> : <p className="rounded-xl bg-gray-50 p-5 text-gray-500">Milestones have not been added yet.</p>}
+    {currentStage && <div className="mx-auto mt-5 max-w-2xl rounded-2xl border-2 border-[#d93c2e] bg-[#fff0ed] px-5 py-4 text-center">
+      <p className="text-lg font-black uppercase tracking-wide text-[#ca2d21]">Current recorded position</p>
+      <p className="mt-1 text-[#34465b]">{currentStage.port}{currentStage.note ? ' · ' + currentStage.note : ''}</p>
+    </div>}
+    <div className="mt-8 space-y-2 text-sm font-bold sm:text-base">
+      {completedPorts.length > 0 && <p className="text-[#16805d]">Completed: {completedPorts.join(' → ')}</p>}
+      {remaining.length > 0 && <p className="text-[#b94e35]">Next: {remaining.map(p => p.port).join(' → ')}{shipment.eta ? ' · ETA ' + shipment.eta + (shipment.etaType === 'confirmed' ? ' (confirmed)' : ' (estimated)') : ''}</p>}
+    </div>
     <div className="mt-5 flex flex-wrap items-center gap-2 border-t border-gray-200 pt-5 text-sm text-gray-500">
       <Clock size={16}/> Updated {Number.isNaN(update.getTime()) ? shipment.updatedAt : update.toLocaleString('en-GB', {timeZone:'UTC',timeZoneName:'short'})}
       <span className="mx-1">·</span><Info size={16}/> Information maintained by AOLAN Machinery; not a live carrier feed.
