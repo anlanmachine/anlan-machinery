@@ -1,7 +1,7 @@
 'use client';
 import {useEffect,useMemo,useState} from 'react';
 import Link from 'next/link';
-import {BarChart3,Edit3,Eye,FileText,FolderOpen,ImagePlus,Inbox,LayoutDashboard,LoaderCircle,LogOut,Package,Plus,Save,Search,Ship,Trash2,Upload} from 'lucide-react';
+import {AlertTriangle,BarChart3,Edit3,Eye,FileText,FolderOpen,History,ImagePlus,Inbox,LayoutDashboard,LoaderCircle,LogOut,Package,Plus,RotateCcw,Save,Search,Ship,Trash2,Upload} from 'lucide-react';
 import {defaultSubCategory} from '@/lib/catalog-config';
 
 type Item=Record<string,any>;
@@ -10,7 +10,7 @@ const modules:{key:ModuleKey;label:string;icon:any}[]=[
   {key:'dashboard',label:'Dashboard',icon:LayoutDashboard},{key:'products',label:'Products',icon:Package},{key:'productCategories',label:'Product Categories',icon:FolderOpen},{key:'cases',label:'Cases',icon:FolderOpen},{key:'factory',label:'Factory',icon:BarChart3},{key:'shipping',label:'Shipping',icon:Ship},{key:'homeShipments',label:'Homepage Shipments',icon:ImagePlus},{key:'blog',label:'Blog',icon:FileText},{key:'media',label:'Media Library',icon:ImagePlus},{key:'inquiries',label:'Inquiries',icon:Inbox}
 ];
 const collections=modules.filter(item=>item.key!=='dashboard').map(item=>item.key);
-const statuses=['Published','Draft'];
+const statuses=['Published','Draft','Archived','Deleted'];
 const inquiryStatuses=['New','Contacted','Quoted','PI Sent','Deal','Lost'];
 const emptyProduct={brand:'XCMG',model:'',category:'excavator',subCategory:'crawler-excavator',name:'',shortDescription:'',description:'',specifications:'',engine:'',operatingWeight:'',bucketCapacity:'',ratedPower:'',dimension:'',fobPrice:'',moq:'1 unit',deliveryTime:'15-30 days',seaFreight:'',destinationPort:'',cifPrice:'',deposit30:'',balance70:'',validity:'15 days',image:'',images:[],video:'',pdfBrochure:'',seoTitle:'',seoDescription:'',slug:'',status:'Published'};
 const emptyByModule:Record<string,Item>={
@@ -26,7 +26,7 @@ const emptyByModule:Record<string,Item>={
 };
 
 export function AdminDashboard(){
-  const [active,setActive]=useState<ModuleKey>('dashboard'),[data,setData]=useState<Record<string,Item[]>>({}),[draft,setDraft]=useState<Item|null>(null),[query,setQuery]=useState(''),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[messageType,setMessageType]=useState<'success'|'error'>('success');
+  const [active,setActive]=useState<ModuleKey>('dashboard'),[data,setData]=useState<Record<string,Item[]>>({}),[draft,setDraft]=useState<Item|null>(null),[query,setQuery]=useState(''),[productFilter,setProductFilter]=useState('All'),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[messageType,setMessageType]=useState<'success'|'error'>('success');
   useEffect(()=>{void loadAll();},[]);
   async function loadAll(){
     setBusy(true);
@@ -37,8 +37,12 @@ export function AdminDashboard(){
       setMessageType('error');setMessage('Could not load the latest content. Please refresh and try again.');
     }finally{setBusy(false);}
   }
-  const items=data[active]||[];
-  const filtered=useMemo(()=>items.filter(item=>JSON.stringify(item).toLowerCase().includes(query.toLowerCase())),[items,query]);
+  const items=useMemo(()=>data[active]||[],[data,active]);
+  const filtered=useMemo(()=>items.filter(item=>{
+    const matchesQuery=JSON.stringify(item).toLowerCase().includes(query.toLowerCase());
+    const matchesStatus=active!=='products'||productFilter==='All'||(productFilter==='Trash'?item.status==='Deleted':item.status===productFilter);
+    return matchesQuery&&matchesStatus;
+  }),[items,query,active,productFilter]);
   const stats={products:(data.products||[]).length,cases:(data.cases||[]).length,blog:(data.blog||[]).length,media:(data.media||[]).length,updated:[...Object.values(data).flat()].map(item=>item.updatedAt||item.createdAt).filter(Boolean).sort().pop()||'Not yet'};
   const categoryOptions=(data.productCategories||[]).map(item=>({value:String(item.id),label:String(item.label||item.id),subCategory:String(item.subCategory||item.id)}));
   async function save(itemToSave:Item|null|undefined=draft,successMessage='Saved successfully.'){
@@ -55,16 +59,28 @@ export function AdminDashboard(){
     }finally{setBusy(false);}
   }
   async function remove(item:Item){
-    if(active==='dashboard'||!confirm('Delete this item?'))return;
+    const prompt=active==='products'?`Move ${item.model||'this product'} to Trash? It can be restored later.`:'Delete this item?';
+    if(active==='dashboard'||!confirm(prompt))return;
     setBusy(true);setMessage('');
     try{
       const response=await fetch(`/api/admin/collections/${active}?id=${encodeURIComponent(item.id)}`,{method:'DELETE'});
       const result=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(result.error||'Delete failed.');
-      setDraft(null);setMessageType('success');setMessage('Deleted.');await loadAll();
+      setDraft(null);setMessageType('success');setMessage(active==='products'?'Product moved to Trash.':'Deleted.');await loadAll();
     }catch(caught){
       setMessageType('error');setMessage(caught instanceof Error?caught.message:'Delete failed. Please try again.');
     }finally{setBusy(false);}
+  }
+  async function permanentlyRemoveProduct(item:Item){
+    if(!confirm(`Permanently delete ${item.model||'this product'}? This cannot be undone.`))return;
+    if(!confirm('Final confirmation: permanently delete this product and its product-image records?'))return;
+    setBusy(true);setMessage('');
+    try{
+      const response=await fetch(`/api/admin/products?id=${encodeURIComponent(String(item.id))}&permanent=true`,{method:'DELETE',headers:{'Content-Type':'application/json'},body:JSON.stringify({confirmPermanentDelete:true})});
+      const result=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(result.error||'Permanent delete failed.');
+      setDraft(null);setMessageType('success');setMessage('Product permanently deleted.');await loadAll();
+    }catch(caught){setMessageType('error');setMessage(caught instanceof Error?caught.message:'Permanent delete failed.');}finally{setBusy(false);}
   }
   async function logout(){await fetch('/api/admin/auth',{method:'DELETE'});location.href='/admin/login';}
   return <main className="min-h-screen bg-[#f3f5f2] pt-20">
@@ -72,7 +88,7 @@ export function AdminDashboard(){
       <aside className="rounded-3xl bg-ink p-4 text-white lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
         <div className="px-3 py-4"><b className="text-xl">AOLAN Admin</b><p className="mt-1 text-xs text-white/50">Content management</p></div>
         <nav className="mt-3 space-y-1">{modules.map(item=>{const Icon=item.icon;return <button key={item.key} onClick={()=>{setActive(item.key);setDraft(null);setMessage('');}} className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-bold ${active===item.key?'bg-lime text-ink':'text-white/75 hover:bg-white/10'}`}><Icon size={18}/>{item.label}</button>})}</nav>
-        <div className="mt-6 space-y-2 px-3"><Link href="/" target="_blank" className="flex items-center gap-2 text-sm font-bold text-white/70"><Eye size={16}/>Preview website</Link><button onClick={logout} className="flex items-center gap-2 text-sm font-bold text-white/70"><LogOut size={16}/>Logout</button></div>
+        <div className="mt-6 space-y-2 px-3"><Link href="/admin/backups" className="flex items-center gap-2 text-sm font-bold text-white/70"><History size={16}/>Catalog backups</Link><Link href="/" target="_blank" className="flex items-center gap-2 text-sm font-bold text-white/70"><Eye size={16}/>Preview website</Link><button onClick={logout} className="flex items-center gap-2 text-sm font-bold text-white/70"><LogOut size={16}/>Logout</button></div>
       </aside>
       <section className="min-w-0">
         <div className="flex flex-wrap items-end justify-between gap-4 rounded-3xl bg-white p-6 shadow-sm">
@@ -82,10 +98,10 @@ export function AdminDashboard(){
         {message&&<p role="status" className={`mt-4 rounded-2xl px-5 py-3 text-sm font-bold ${messageType==='error'?'bg-red-50 text-red-700':'bg-green-50 text-green-800'}`}>{message}</p>}
         {active==='dashboard'?<Dashboard stats={stats}/>:<div className="mt-5 grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
           <div className="rounded-3xl bg-white p-5 shadow-sm">
-            <div className="relative"><Search className="absolute left-3 top-3.5 text-gray-400" size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search model, title, country, category..." className="w-full rounded-xl border border-black/10 py-3 pl-10 pr-4 outline-none focus:border-black"/></div>
+            <div className="relative"><Search className="absolute left-3 top-3.5 text-gray-400" size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search model, title, country, category..." className="w-full rounded-xl border border-black/10 py-3 pl-10 pr-4 outline-none focus:border-black"/></div>{active==='products'&&<div className="mt-3 flex flex-wrap gap-2">{['All','Published','Draft','Archived','Trash'].map(status=><button type="button" key={status} onClick={()=>setProductFilter(status)} className={`rounded-full px-3 py-1.5 text-xs font-black ${productFilter===status?'bg-ink text-white':'bg-sand text-gray-600'}`}>{status}</button>)}</div>}
             <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading latest content...</p>:filtered.length===0?<p className="p-6 text-center text-sm text-gray-500">No matching items yet. Use Add New to create one.</p>:filtered.map(item=><button key={item.id||item.url||JSON.stringify(item).slice(0,30)} onClick={()=>setDraft({...item})} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left transition hover:bg-gray-50 ${draft?.id===item.id?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
           </div>
-          <Editor active={active} draft={draft} setDraft={setDraft} save={save} remove={remove} busy={busy} categoryOptions={categoryOptions}/>
+          <Editor active={active} draft={draft} setDraft={setDraft} save={save} remove={remove} permanentlyRemoveProduct={permanentlyRemoveProduct} busy={busy} categoryOptions={categoryOptions}/>
         </div>}
       </section>
     </div>
@@ -96,10 +112,10 @@ function Dashboard({stats}:{stats:Record<string,any>}){
   return <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-5">{[['Products',stats.products],['Cases',stats.cases],['Blogs',stats.blog],['Uploaded media',stats.media],['Last update',String(stats.updated).slice(0,10)]].map(([label,value])=><article className="rounded-3xl bg-white p-6 shadow-sm" key={label}><p className="text-sm font-bold text-gray-500">{label}</p><b className="mt-3 block text-3xl font-black">{value}</b></article>)}</div>;
 }
 
-function Editor({active,draft,setDraft,save,remove,busy,categoryOptions}:{active:ModuleKey;draft:Item|null;setDraft:(item:Item|null)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>;remove:(item:Item)=>void;busy:boolean;categoryOptions:{value:string;label:string;subCategory:string}[]}){
+function Editor({active,draft,setDraft,save,remove,permanentlyRemoveProduct,busy,categoryOptions}:{active:ModuleKey;draft:Item|null;setDraft:(item:Item|null)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>;remove:(item:Item)=>void;permanentlyRemoveProduct:(item:Item)=>void;busy:boolean;categoryOptions:{value:string;label:string;subCategory:string}[]}){
   if(!draft)return <div className="rounded-3xl bg-white p-8 text-gray-500 shadow-sm">Select an item or click Add New.</div>;
   return <div className="rounded-3xl bg-white p-6 shadow-sm">
-    <div className="flex items-center justify-between"><h2 className="text-2xl font-black">{draft.id?'Edit':'Add New'}</h2>{draft.id&&<button onClick={()=>remove(draft)} className="rounded-full p-3 text-red-600 hover:bg-red-50"><Trash2/></button>}</div>
+    <div className="flex items-center justify-between gap-3"><h2 className="text-2xl font-black">{draft.id?'Edit':'Add New'}</h2>{draft.id&&active==='products'&&draft.status==='Deleted'?<div className="flex gap-2"><button type="button" onClick={()=>void save({...draft,status:'Published',deletedAt:null},'Product restored from Trash.')} className="inline-flex items-center gap-2 rounded-full bg-lime px-4 py-2 text-sm font-black"><RotateCcw size={15}/>Restore</button><button type="button" onClick={()=>permanentlyRemoveProduct(draft)} className="rounded-full p-3 text-red-600 hover:bg-red-50" aria-label="Permanently delete product"><Trash2/></button></div>:draft.id&&<button onClick={()=>remove(draft)} className="rounded-full p-3 text-red-600 hover:bg-red-50" aria-label="Move to trash"><Trash2/></button>}</div>
     {active==='products'&&<ProductFields draft={draft} setDraft={setDraft} save={save} categoryOptions={categoryOptions}/>}
     {active==='productCategories'&&<CategoryFields draft={draft} setDraft={setDraft}/>}
     {active==='cases'&&<CaseFields draft={draft} setDraft={setDraft} save={save}/>}
@@ -131,11 +147,33 @@ function ProductFields({draft,setDraft,save,categoryOptions}:{draft:Item;setDraf
     setDraft({...draft,brand,name:String(draft.name||'').trim()||`${brand} ${model}`,slug:String(draft.slug||'').trim()||slug});
   }
   return <div className="mt-6 space-y-7">
+    <CatalogHealth/>
     <section><div className="flex items-center justify-between gap-3"><p className="text-sm font-black">1. Choose product category</p><p className="text-xs text-gray-500">Manage categories from Product Categories.</p></div><div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-3">{categoryOptions.map(option=><button type="button" key={option.value} onClick={()=>chooseCategory(option)} className={`rounded-xl border p-3 text-left text-sm font-black transition ${draft.category===option.value?'border-ink bg-lime text-ink':'border-black/10 hover:border-black/40'}`}>{option.label}</button>)}</div><p className="mt-2 text-xs text-gray-500">Selected: <b>{categoryOptions.find(option=>option.value===draft.category)?.label||'Choose a category'}</b>. This controls the storefront page.</p></section>
     <section className="grid gap-4 md:grid-cols-2"><Input field="model" draft={draft} setDraft={setDraft}/><Input field="brand" draft={draft} setDraft={setDraft}/><div className="md:col-span-2 -mt-1"><button type="button" onClick={completeProductBasics} disabled={!String(draft.model||'').trim()} className="rounded-full border border-black/15 bg-white px-4 py-2 text-sm font-black transition hover:border-ink disabled:cursor-not-allowed disabled:opacity-40">Use brand + model for product name and page link</button><p className="mt-2 text-xs text-gray-500">A quick shortcut for new products. You can still edit the product name and slug below.</p></div><Input field="name" draft={draft} setDraft={setDraft}/><Select field="status" options={statuses} draft={draft} setDraft={setDraft}/><Input field="shortDescription" draft={draft} setDraft={setDraft} textarea/><Input field="description" draft={draft} setDraft={setDraft} textarea/></section>
     <section className="rounded-2xl bg-sand p-4"><p className="font-black">2. Product photos</p><div className="mt-3 flex flex-wrap items-start gap-4">{draft.image&&<img src={draft.image} alt="Product preview" className="size-28 rounded-xl border border-black/10 bg-white object-contain p-1"/>}<div><MediaUpload onUploaded={attachUploadedMedia}/><p className="mt-2 max-w-md text-xs leading-5 text-gray-500">Upload JPG, PNG or WebP. Existing published products save the new photo automatically. For a new product, click Save & Publish after entering the model.</p></div></div><ArrayField field="images" draft={draft} setDraft={setDraft}/></section>
-    <details className="rounded-2xl border border-black/10 p-4"><summary className="cursor-pointer font-black">Specifications, price and SEO (optional)</summary><div className="mt-5 grid gap-4 md:grid-cols-2">{['engine','operatingWeight','bucketCapacity','ratedPower','dimension','fobPrice','moq','deliveryTime','seaFreight','destinationPort','cifPrice','deposit30','balance70','validity','video','pdfBrochure','slug','seoTitle','seoDescription'].map(field=><Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['seoDescription'].includes(field)}/>)}<Input field="specifications" draft={draft} setDraft={setDraft} textarea/></div></details>
+    <details className="rounded-2xl border border-black/10 p-4"><summary className="cursor-pointer font-black">Specifications, price and SEO (optional)</summary><div className="mt-5 grid gap-4 md:grid-cols-2">{['engine','operatingWeight','bucketCapacity','ratedPower','dimension','fobPrice','moq','deliveryTime','seaFreight','destinationPort','cifPrice','deposit30','balance70','validity','video','pdfBrochure','slug','seoTitle','seoDescription'].map(field=><Input key={field} field={field} draft={draft} setDraft={setDraft} textarea={['seoDescription'].includes(field)}/>)}<Input field="specifications" draft={draft} setDraft={setDraft} textarea/></div></details>{draft.id&&<ProductVersionHistory productId={String(draft.id)} onRestored={setDraft}/>}
   </div>;
+}
+
+function CatalogHealth(){
+  const [health,setHealth]=useState<Item|null>(null);
+  useEffect(()=>{void fetch('/api/admin/catalog-health',{cache:'no-store'}).then(response=>response.ok?response.json():null).then(setHealth).catch(()=>setHealth(null));},[]);
+  if(!health)return <div className="rounded-2xl bg-sand p-4 text-sm text-gray-500">Catalog Health is loading…</div>;
+  const entries=[['Products',health.total],['Published',health.published],['Draft',health.draft],['Archived',health.archived],['Trash',health.trash],['Missing image',health.missingImages?.length||0],['Duplicate models',health.duplicateModels?.length||0]];
+  return <section className="rounded-2xl border border-black/10 p-4"><div className="flex items-center gap-2"><AlertTriangle size={18}/><p className="font-black">Catalog Health</p></div><div className="mt-3 grid grid-cols-2 gap-2 md:grid-cols-4">{entries.map(([label,value])=><div key={String(label)} className="rounded-xl bg-sand px-3 py-2"><p className="text-xs text-gray-500">{label}</p><b>{String(value)}</b></div>)}</div></section>;
+}
+
+function ProductVersionHistory({productId,onRestored}:{productId:string;onRestored:(item:Item)=>void}){
+  const [versions,setVersions]=useState<Item[]>([]),[message,setMessage]=useState('');
+  useEffect(()=>{void fetch(`/api/admin/products/${encodeURIComponent(productId)}/versions`,{cache:'no-store'}).then(response=>response.ok?response.json():[]).then(setVersions).catch(()=>setVersions([]));},[productId]);
+  async function restore(versionId:string){
+    if(!confirm('Restore this saved version? The current product state will be saved first.'))return;
+    const response=await fetch(`/api/admin/products/${encodeURIComponent(productId)}/versions`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({versionId})});
+    const result=await response.json().catch(()=>({}));
+    if(!response.ok){setMessage(result.error||'Unable to restore version.');return;}
+    onRestored(result.product);setMessage('Version restored.');
+  }
+  return <details className="rounded-2xl border border-black/10 p-4"><summary className="cursor-pointer font-black">Version history ({versions.length})</summary><div className="mt-4 space-y-2">{!versions.length?<p className="text-sm text-gray-500">No saved versions yet. The next edit, deletion, restore, or migration will create one.</p>:versions.map(version=><div className="flex items-center justify-between gap-3 rounded-xl bg-sand p-3" key={version.id}><span><b className="block text-sm">{version.action||'Updated'}</b><small className="text-gray-500">{String(version.created_at||'').slice(0,16).replace('T',' ')}</small></span><button type="button" onClick={()=>void restore(String(version.id))} className="rounded-lg border border-black/15 px-3 py-2 text-xs font-black">Restore</button></div>)}{message&&<p className="text-xs font-bold text-red-600">{message}</p>}</div></details>;
 }
 
 function CategoryFields({draft,setDraft}:{draft:Item;setDraft:(item:Item)=>void}){

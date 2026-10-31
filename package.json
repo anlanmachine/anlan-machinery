@@ -3,12 +3,18 @@
   "version": "2.2.0",
   "private": true,
   "engines": {
-    "node": "20.x"
+    "node": "24.x"
   },
   "scripts": {
     "dev": "cross-env NODE_ENV=development node server.js",
     "build": "next build",
     "start": "cross-env NODE_ENV=production node server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "products:audit": "tsx scripts/audit-product-catalog.ts",
+    "products:recover": "tsx scripts/recover-products.ts",
+    "products:migrate": "tsx scripts/migrate-products-to-table.ts",
+    "test:products": "tsx --test tests/product-safety.test.ts",
     "rebuild:products": "node scripts/rebuild-product-catalog.js && node scripts/repair-product-images.js",
     "repair:images": "node scripts/repair-product-images.js",
     "ingest:media": "node scripts/ingest-local-media.js"
@@ -36,6 +42,7 @@
     "zod": "^3.24.2"
   },
   "devDependencies": {
+    "@eslint/js": "^9.39.1",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.3",
     "@types/node": "^22.13.4",
@@ -43,8 +50,11 @@
     "@types/react-dom": "^19.0.3",
     "autoprefixer": "^10.4.20",
     "cross-env": "^7.0.3",
+    "eslint": "^9.39.1",
+    "eslint-config-next": "^15.5.0",
     "postcss": "^8.5.3",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.20.6",
     "typescript": "^5.7.3"
   }
 }

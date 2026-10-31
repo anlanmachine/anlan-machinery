@@ -1,11 +1,10 @@
 import {NextRequest,NextResponse} from 'next/server';
 import {requireAdmin} from '@/lib/admin-auth';
 import {CmsCollection,nowIso,readCollection,slugify,writeCollection} from '@/lib/cms-store';
-import {readFile} from 'fs/promises';
-import path from 'path';
 import {DEFAULT_PRODUCT_CATEGORIES,normalizeProductCategory,normalizeSubCategory} from '@/lib/catalog-config';
 import {getHomeShipmentSlots} from '@/lib/home-shipments';
 import {getBaseMedia} from '@/lib/media';
+import {createProduct,getProducts,trashProduct,updateProduct} from '@/lib/product-store';
 
 export const runtime='nodejs';
 export const dynamic='force-dynamic';
@@ -19,9 +18,7 @@ function normalizeCollection(value:string):CmsCollection{
 
 async function readItems(collection:CmsCollection){
   if(collection==='products'){
-    let fallback:Record<string,unknown>[]=[];
-    try{fallback=JSON.parse(await readFile(path.join(process.cwd(),'data','products.json'),'utf8'));}catch{}
-    return readCollection<Record<string,unknown>[]>(collection,fallback);
+    return getProducts({includeDeleted:true});
   }
   if(collection==='productCategories')return readCollection<Record<string,unknown>[]>(collection,DEFAULT_PRODUCT_CATEGORIES);
   return readCollection<Record<string,unknown>[]>(collection,[]);
@@ -113,7 +110,12 @@ export async function GET(_:NextRequest,{params}:{params:Promise<{collection:str
 export async function POST(request:NextRequest,{params}:{params:Promise<{collection:string}>}){
   try{
     await requireAdmin();
-    const collection=normalizeCollection((await params).collection),items=await readItems(collection),item=normalize(collection,await request.json());
+    const collection=normalizeCollection((await params).collection);
+    if(collection==='products'){
+      const item=await createProduct(await request.json());
+      return NextResponse.json({success:true,item});
+    }
+    const items=(await readItems(collection)) as Record<string,unknown>[],item=normalize(collection,await request.json());
     items.unshift(item);
     await writeCollection(collection,items);
     return NextResponse.json({success:true,item});
@@ -123,7 +125,15 @@ export async function POST(request:NextRequest,{params}:{params:Promise<{collect
 export async function PUT(request:NextRequest,{params}:{params:Promise<{collection:string}>}){
   try{
     await requireAdmin();
-    const collection=normalizeCollection((await params).collection),items=await readItems(collection),item=normalize(collection,await request.json());
+    const collection=normalizeCollection((await params).collection);
+    if(collection==='products'){
+      const input=await request.json();
+      const id=String(input.id||'');
+      if(!id)return NextResponse.json({success:false,error:'Product ID is required.'},{status:400});
+      const item=await updateProduct(id,input);
+      return NextResponse.json({success:true,item});
+    }
+    const items=(await readItems(collection)) as Record<string,unknown>[],item=normalize(collection,await request.json());
     const index=items.findIndex(existing=>existing.id===item.id);
     if(index<0){
       const isDefaultMedia=(collection==='factory'||collection==='cases')&&String(item.id)===`${collection==='factory'?'factory':'cases'}-default-media`;
@@ -140,6 +150,10 @@ export async function DELETE(request:NextRequest,{params}:{params:Promise<{colle
     await requireAdmin();
     const collection=normalizeCollection((await params).collection),id=request.nextUrl.searchParams.get('id');
     if(!id)return NextResponse.json({success:false,error:'ID is required.'},{status:400});
+    if(collection==='products'){
+      const item=await trashProduct(id);
+      return NextResponse.json({success:true,item,message:`${item.model} moved to Trash.`});
+    }
     const items=await readItems(collection);
     if(collection==='productCategories'){
       const products=await readItems('products');

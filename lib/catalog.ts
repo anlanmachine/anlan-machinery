@@ -1,21 +1,19 @@
-import {readFile} from 'fs/promises';import path from 'path';import {normalizeProductCategory,type CatalogCategory} from './catalog-config';import {readCollection,slugify} from './cms-store';
-export type CatalogProduct={id:string;brand:string;name:string;model:string;category:CatalogCategory;subCategory:string;source?:'xcmg'|'pdf'|'manual';image:string;images:string[];description:string;shortDescription?:string;specifications:Record<string,string>|string;engine?:string;operatingWeight?:string;bucketCapacity?:string;ratedPower?:string;dimension?:string;fobPrice?:string;moq?:string;deliveryTime?:string;video?:string;pdfBrochure?:string;seoTitle?:string;seoDescription?:string;slug?:string;status?:string;localOnly?:true};
-function normalizeProduct(product:CatalogProduct):CatalogProduct|null{
-  const category=normalizeProductCategory(String(product.category||''));
-  if(!category)return null;
-  const images=(Array.isArray(product.images)?product.images:[]).filter(Boolean);
-  return {...product,category,subCategory:product.subCategory||category,image:product.image||images[0]||'/uploads/placeholder-machine.svg',images:images.length?images:[product.image||'/uploads/placeholder-machine.svg'],status:product.status||'Published'};
-}
+import {normalizeProductCategory,type CatalogCategory} from './catalog-config';
+import {slugify} from './cms-store';
+import {getProducts} from './product-store';
+import type {ProductRecord} from './product-types';
+
+export type CatalogProduct=ProductRecord;
+
 export async function getCatalog():Promise<CatalogProduct[]>{
-  let fallback:CatalogProduct[]=[];
-  try{fallback=JSON.parse(await readFile(path.join(process.cwd(),'data','products.json'),'utf8'));}catch{}
-  return (await readCollection<CatalogProduct[]>('products',fallback)).map(normalizeProduct).filter((product):product is CatalogProduct=>product!==null&&product.status!=='Draft');
+  return getProducts({publishedOnly:true});
 }
 export async function getCategoryProducts(category:CatalogCategory){
   const products=await getCatalog();
-  if(category==='backhoe-loader')return products.filter(product=>product.category==='backhoe-loader'||product.subCategory==='backhoe-loader'||/backhoe/i.test(product.name));
-  if(category==='loader')return products.filter(product=>product.category==='loader'&&product.subCategory!=='backhoe-loader');
-  return products.filter(product=>product.category===category);
+  const normalized=normalizeProductCategory(String(category))||category;
+  if(normalized==='backhoe-loader')return products.filter(product=>product.category==='backhoe-loader'||product.subCategory==='backhoe-loader'||/backhoe/i.test(product.name));
+  if(normalized==='loader')return products.filter(product=>product.category==='loader'&&product.subCategory!=='backhoe-loader');
+  return products.filter(product=>product.category===normalized);
 }
 export const productSlug=(modelOrSlug:string)=>slugify(modelOrSlug);
 export const productPath=(product:CatalogProduct)=>product.slug?slugify(product.slug):slugify(`${product.brand||'xcmg'}-${product.model}`);

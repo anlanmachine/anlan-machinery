@@ -11,7 +11,8 @@ The project includes the full website source code, local product database, local
 - TypeScript
 - Tailwind CSS
 - Express custom server for local/Node hosting
-- JSON local storage for products and media
+- Neon Postgres product rows, image rows, version history and catalog backups
+- JSON local storage only as a development seed and disaster-recovery fallback
 - Sharp + FFmpeg for media processing
 - Optional Supabase and Resend integrations
 
@@ -37,7 +38,7 @@ The project includes the full website source code, local product database, local
 
 ## What is included
 
-- Product data: `data/products.json`
+- Product seed / disaster-recovery data: `data/products.json`
 - Media index: `data/media.json`
 - Local product images: `public/uploads/`
 - Local website images/videos: `public/media/`
@@ -125,6 +126,7 @@ Copy `.env.example` to `.env.local`.
 | --- | --- | --- |
 | `NEXT_PUBLIC_SITE_URL` | Yes | Public website URL, for SEO canonical URLs and metadata. Example: `https://aolanmachinery.com` |
 | `ADMIN_PASSWORD` | Yes | Password for `/admin`. Change before public deployment. |
+| `DATABASE_URL` | Yes for production CMS | Neon PostgreSQL connection used for independent product rows, media, versions and backups. |
 | `LEADS_TO_EMAIL` | Optional | Email address that receives inquiry notifications. |
 | `RESEND_API_KEY` | Optional | Enables email sending through Resend. |
 | `NEXT_PUBLIC_SUPABASE_URL` | Optional | Supabase project URL if using Supabase. |
@@ -148,10 +150,28 @@ Admin supports:
 
 - Add product
 - Edit product
-- Delete product
+- Move products to Trash and restore them
+- Permanently delete only after a second confirmation
 - Upload product cover image
-- Save products into `data/products.json`
-- Store uploaded images under `public/uploads/admin/`
+- View product version history and restore a prior version
+- View Catalog Health and `/admin/backups`
+- Store production products in PostgreSQL `products` and `product_images`
+
+Before the first production catalog migration, run the read-only audit:
+
+```bash
+npm run products:audit
+npm run products:recover -- --dry-run
+```
+
+Only after the audit confirms the production database is readable and a backup succeeds:
+
+```bash
+npm run products:migrate -- --apply
+npm run products:recover -- --apply
+```
+
+Never use `data/products.json` to overwrite production data. It remains a seed and disaster-recovery source only.
 
 For direct file updates:
 
@@ -212,7 +232,7 @@ Recommended for easiest global deployment.
 5. Build command: `npm run build`
 6. Install command: `PUPPETEER_SKIP_DOWNLOAD=true npm install`
 7. Output directory: `.next`
-8. Node.js version: `20.x`
+8. Node.js version: `24.x`
 9. Add environment variables from `.env.example`.
 10. Set `NEXT_PUBLIC_SITE_URL` to the Vercel preview URL first, then to the final domain after binding.
 11. Deploy.
@@ -221,7 +241,7 @@ Notes:
 
 - Vercel uses the Next.js API route `app/api/products/route.ts`.
 - The local Express server `server.js` is for traditional Node/VPS hosting.
-- Admin file writes on Vercel serverless storage are not permanent. For long-term online admin editing, connect Supabase Storage/database or redeploy after committing JSON/media changes.
+- Production product edits use `DATABASE_URL` and do not write to Vercel's read-only filesystem. Ensure the Neon project is active before using product management.
 
 ## Deployment to a VPS or Node server
 
@@ -389,32 +409,6 @@ The admin panel includes:
 - Media Library
 - Inquiries
 
-Local development stores content in `data/*.json` and files in `public/uploads/admin/`. This is good for local editing and VPS hosting.
+Local development may read `data/products.json`, but production should use `DATABASE_URL`. The old `cms_store.products` JSON is deliberately retained as a legacy backup and is never dropped by the migration.
 
-Important for Vercel: Vercel's local filesystem is not permanent after deployments or serverless restarts. For production CMS persistence, configure Supabase:
-
-1. Create a Supabase project.
-2. Create a public Storage bucket named `aolan-media`.
-3. Run this SQL in Supabase SQL Editor:
-
-```sql
-create table if not exists public.cms_store (
-  key text primary key,
-  value jsonb not null default '[]'::jsonb,
-  updated_at timestamptz not null default now()
-);
-```
-
-4. Add these variables in Vercel:
-
-```text
-NEXT_PUBLIC_SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-SUPABASE_STORAGE_BUCKET=aolan-media
-ADMIN_PASSWORD=
-LEADS_TO_EMAIL=Aolanmachinery@gmail.com
-```
-
-5. Redeploy from Vercel.
-
-After Supabase is configured, admin content is stored in `cms_store`, uploaded files are stored in Supabase Storage, and frontend pages read the same data.
+If Neon is unavailable or over quota, catalog recovery and all product writes fail closed. The public storefront continues to serve the committed fallback catalog rather than replacing production data with a smaller JSON file.
