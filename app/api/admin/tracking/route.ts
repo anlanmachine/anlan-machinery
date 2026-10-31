@@ -1,12 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
+import {requireAdmin} from '@/lib/admin-auth';
 import { readCollection, writeCollection } from '@/lib/cms-store';
 import { isTrackingNumber, normalizeTrackingNumber, type TrackingShipment, type ShipmentMilestone } from '@/lib/shipment-tracking';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
-function authorized(request: NextRequest) {
-  return Boolean(process.env.ADMIN_PASSWORD) && request.headers.get('x-admin-password') === process.env.ADMIN_PASSWORD;
+async function authorized(_request: NextRequest) {
+  try{await requireAdmin();return true;}catch{return false;}
 }
 function denied() { return NextResponse.json({ error: 'Unauthorized.' }, { status: 401 }); }
 function clean(value: unknown, limit = 160) { return String(value ?? '').trim().slice(0, limit); }
@@ -41,15 +42,15 @@ function normalize(body: Record<string, unknown>, publishedBefore?: TrackingShip
     milestones
   };
 }
-async function all() { return readCollection<TrackingShipment[]>('shipments', []); }
+async function all() { return readCollection<TrackingShipment[]>('shipments', [],{strict:true}); }
 
 export async function GET(request: NextRequest) {
-  if (!authorized(request)) return denied();
-  return NextResponse.json({ shipments: await all() }, { headers: { 'Cache-Control': 'no-store' } });
+  if (!await authorized(request)) return denied();
+  try{return NextResponse.json({ shipments: await all() }, { headers: { 'Cache-Control': 'no-store' } });}catch{return NextResponse.json({error:'数据库读取失败，请重试 / Database unavailable.'},{status:503});}
 }
 
 export async function POST(request: NextRequest) {
-  if (!authorized(request)) return denied();
+  if (!await authorized(request)) return denied();
   try {
     const body = await request.json() as Record<string, unknown>;
     const item = normalize(body);
@@ -66,7 +67,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PUT(request: NextRequest) {
-  if (!authorized(request)) return denied();
+  if (!await authorized(request)) return denied();
   try {
     const body = await request.json() as Record<string, unknown>;
     const key = normalizeTrackingNumber(clean(body.originalBlNumber || body.blNumber));
@@ -86,7 +87,7 @@ export async function PUT(request: NextRequest) {
 }
 
 export async function DELETE(request: NextRequest) {
-  if (!authorized(request)) return denied();
+  if (!await authorized(request)) return denied();
   const number = normalizeTrackingNumber(request.nextUrl.searchParams.get('number') || '');
   if (!isTrackingNumber(number)) return NextResponse.json({ error: 'Invalid B/L.' }, { status: 400 });
   const shipments = await all();

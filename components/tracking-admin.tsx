@@ -1,18 +1,18 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent, useState, useEffect } from 'react';
 import Link from 'next/link';
 import type { TrackingShipment, ShipmentMilestone } from '@/lib/shipment-tracking';
 
 type Editor = Omit<TrackingShipment, 'source' | 'updatedAt' | 'milestones' | 'containerNumbers'> & {
   containerList: string;
-  milestoneLines: string;
+  milestones: ShipmentMilestone[];
   originalBlNumber?: string;
 };
 const blank: Editor = {
   blNumber: '', containerList: '', carrier: '', origin: '', destination: '',
   currentVessel: '', nextVessel: '', eta: '', etaType: 'estimated',
-  published: false, milestoneLines: ''
+  published: false, milestones: []
 };
 
 function toEditor(item: TrackingShipment): Editor {
@@ -22,18 +22,11 @@ function toEditor(item: TrackingShipment): Editor {
     origin: item.origin, destination: item.destination, currentVessel: item.currentVessel || '',
     nextVessel: item.nextVessel || '', eta: item.eta || '', etaType: item.etaType,
     published: item.published,
-    milestoneLines: item.milestones.map(m => [m.port, m.date, m.status, m.note || ''].join(' | ')).join('\n')
+    milestones: item.milestones.map(m=>({...m}))
   };
 }
-const parseMilestones = (lines: string): ShipmentMilestone[] =>
-  lines.split('\n').map(line => {
-    const [port = '', date = '', rawStatus = 'planned', ...note] = line.split('|').map(v => v.trim());
-    const status: ShipmentMilestone['status'] = rawStatus === 'completed' || rawStatus === 'current' ? rawStatus : 'planned';
-    return { port, date, status, note: note.join(' | ') };
-  }).filter(m => m.port);
-
 export function TrackingAdmin() {
-  const [password, setPassword] = useState('');
+
   const [list, setList] = useState<TrackingShipment[]>([]);
   const [editor, setEditor] = useState<Editor>({...blank});
   const [ready, setReady] = useState(false);
@@ -41,7 +34,7 @@ export function TrackingAdmin() {
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
   function authHeaders() {
-    return { 'content-type': 'application/json', 'x-admin-password': password };
+    return { 'content-type': 'application/json' };
   }
   async function load() {
     setBusy(true); setError(''); setMessage('');
@@ -59,7 +52,7 @@ export function TrackingAdmin() {
       const body = {
         ...editor, originalBlNumber: editor.originalBlNumber,
         containerNumbers: editor.containerList.split(/[\n,;]+/).map(x=>x.trim()).filter(Boolean),
-        milestones: parseMilestones(editor.milestoneLines)
+        milestones: editor.milestones
       };
       const res = await fetch('/api/admin/tracking', {
         method: editor.originalBlNumber ? 'PUT' : 'POST',
@@ -90,17 +83,8 @@ export function TrackingAdmin() {
   }
   const change = (patch: Partial<Editor>) => setEditor(old => ({...old,...patch}));
   const inputClass = 'mt-2 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-[#14263a] outline-none focus:border-[#789400]';
-  if (!ready) return <div className="mx-auto max-w-md rounded-3xl bg-white p-8 shadow-xl">
-    <h1 className="text-2xl font-black">Shipment tracking admin</h1>
-    <p className="mt-2 text-gray-600">Enter the existing AOLAN website admin password.</p>
-    <form onSubmit={e => {e.preventDefault(); void load();}}>
-      <label className="mt-6 block text-sm font-bold">Admin password
-        <input type="password" required value={password} onChange={e=>setPassword(e.target.value)} className={inputClass}/>
-      </label>
-      <button disabled={busy} className="mt-4 w-full rounded-xl bg-ink px-6 py-3 font-bold text-white">{busy ? 'Checking…' : 'Open tracking manager'}</button>
-    </form>
-    {error && <p role="alert" className="mt-3 text-red-700">{error}</p>}
-  </div>;
+  useEffect(()=>{void load();},[]);
+  if (!ready) return <div role="status">{error||'加载中 / Loading…'}{error&&<button onClick={()=>void load()}>重试 / Retry</button>}</div>;
   return <div className="mx-auto max-w-7xl">
     <div className="flex flex-wrap items-center justify-between gap-4">
       <div><h1 className="text-3xl font-black">Shipment tracking manager</h1><p className="mt-2 text-gray-600">Manually maintained records · Public lookup at <Link className="underline" href="/track">/track</Link></p></div>
@@ -138,12 +122,7 @@ export function TrackingAdmin() {
               <option value="estimated">Estimated / planned</option><option value="confirmed">Confirmed</option><option value="unknown">Unknown</option>
             </select>
           </label>
-          <label className="text-sm font-semibold sm:col-span-2">Port milestones (one per line)
-            <textarea rows={9} value={editor.milestoneLines} onChange={e=>change({milestoneLines:e.target.value})}
-              placeholder={'Qingdao | 12 Aug 2026 | completed | Loaded\nShanghai | 13 Sep 2026 | completed | Transshipment\nAbidjan | 4 Nov 2026 | planned | Expected transshipment\nDakar | 11 Nov 2026 | planned | Estimated arrival'}
-              className={inputClass + ' font-mono text-sm'}/>
-            <span className="mt-2 block text-xs font-normal text-gray-500">Format: Port | Date | completed/current/planned | Note. Put events in route order.</span>
-          </label>
+          <section className="sm:col-span-2"><h3 className="font-bold">运输节点 / Route milestones</h3>{editor.milestones.map((m,index)=><div className="mt-3 grid gap-2 rounded-lg border p-3 sm:grid-cols-2" key={index}>{(['port','date','note'] as const).map(field=><label key={field} className="text-sm">{field==='port'?'港口 / Port':field==='date'?'日期 / Date':'备注 / Note'}<input value={m[field]||''} onChange={e=>change({milestones:editor.milestones.map((v,i)=>i===index?{...v,[field]:e.target.value}:v)})} className={inputClass}/></label>)}<label className="text-sm">状态 / Status<select value={m.status} onChange={e=>change({milestones:editor.milestones.map((v,i)=>i===index?{...v,status:e.target.value as ShipmentMilestone['status']}:v)})} className={inputClass}><option value="planned">计划 / Planned</option><option value="current">当前 / Current</option><option value="completed">完成 / Completed</option></select></label><button type="button" onClick={()=>change({milestones:editor.milestones.filter((_,i)=>i!==index)})} className="text-left text-sm text-red-700">移除节点 / Remove</button></div>)}<button type="button" className="mt-3 rounded-lg border px-4 py-3" onClick={()=>change({milestones:[...editor.milestones,{port:'',date:'',status:'planned',note:''}]})}>添加节点 / Add milestone</button></section>
           <label className="sm:col-span-2 flex items-center gap-3 rounded-xl border border-gray-200 p-4 font-bold">
             <input type="checkbox" checked={editor.published} onChange={e=>change({published:e.target.checked})} className="size-5 accent-[#789400]"/>
             Publish this record for customers

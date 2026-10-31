@@ -14,7 +14,7 @@ export async function POST(request:NextRequest){
     const form=await request.formData(),folder=String(form.get('folder')||'admin');
     const files=[...form.getAll('files'),...form.getAll('images')].filter((item):item is File=>item instanceof File);
     if(!files.length)return NextResponse.json({success:false,error:'Choose at least one file.'},{status:400});
-    const assets=await readCollection<Record<string,unknown>[]>('media',[]);
+    const assets=await readCollection<Record<string,unknown>[]>('media',[],{strict:true});
     const uploaded:Record<string,unknown>[]=[];
     for(const file of files){
       if(!TYPES.has(file.type))throw new Error('Only JPG, PNG, WebP, MP4 and PDF files are supported.');
@@ -25,6 +25,6 @@ export async function POST(request:NextRequest){
       uploaded.push(asset);
     }
     await writeCollection('media',assets);
-    return NextResponse.json({success:true,assets,images:uploaded.filter(item=>item.type==='image').map(item=>String(item.url))});
+    return NextResponse.json({success:true,assets:uploaded,images:uploaded.filter(item=>item.type==='image').map(item=>String(item.url))});
   }catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Upload failed.'},{status:400});}
 }

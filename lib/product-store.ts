@@ -202,7 +202,7 @@ async function tableProducts(includeDeleted=false):Promise<ProductRecord[]>{
   return rows.map(row=>rowProduct(row as Row,images as Row[]));
 }
 
-export async function getProducts(options:{includeDeleted?:boolean;publishedOnly?:boolean}={}):Promise<ProductRecord[]>{
+export async function getProducts(options:{includeDeleted?:boolean;publishedOnly?:boolean;strict?:boolean}={}):Promise<ProductRecord[]>{
   if(catalogDatabaseConfigured()){
     try{
       const count=await tableProductCount(true);
@@ -211,7 +211,15 @@ export async function getProducts(options:{includeDeleted?:boolean;publishedOnly
         if(options.publishedOnly)products=products.filter(item=>item.status==='Published'&&!item.deletedAt);
         return products;
       }
-    }catch{/* A database outage must never cause a catalog replacement or erase the file fallback. */}
+      if(options.strict){
+        let products=await legacyDatabaseProducts();
+        if(!options.includeDeleted)products=products.filter(p=>p.status!=='Deleted');
+        if(options.publishedOnly)products=products.filter(p=>p.status==='Published');
+        return products;
+      }
+    }catch{
+      if(options.strict)throw new Error('数据库读取失败，未使用备用商品数据 / Database unavailable. Retry before editing.');
+    }
   }
   let products=await getLegacyProducts();
   if(!options.includeDeleted)products=products.filter(item=>item.status!=='Deleted');
@@ -419,7 +427,7 @@ function duplicateGroups(products:ProductRecord[],key:(product:ProductRecord)=>s
 }
 
 export async function getProductHealth():Promise<ProductHealth>{
-  const products=await getProducts({includeDeleted:true});
+  const products=await getProducts({includeDeleted:true,strict:true});
   const statuses=products.map(item=>normalizeStatus(item.status));
   const invalidStatus=products.filter((item,index)=>cleanText(item.status)&&!PRODUCT_STATUSES.includes(statuses[index]));
   return {

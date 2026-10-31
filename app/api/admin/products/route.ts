@@ -19,7 +19,7 @@ function failure(error:unknown){
 
 export async function GET(request:NextRequest){
   if(!await authorized(request))return denied();
-  return NextResponse.json(await getProducts({includeDeleted:request.nextUrl.searchParams.get('scope')==='all'}),{headers:{'Cache-Control':'no-store'}});
+  try{return NextResponse.json(await getProducts({includeDeleted:request.nextUrl.searchParams.get('scope')==='all',strict:true}),{headers:{'Cache-Control':'no-store'}});}catch(error){return failure(error);}
 }
 
 export async function POST(request:NextRequest){

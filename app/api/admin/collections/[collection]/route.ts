@@ -18,10 +18,10 @@ function normalizeCollection(value:string):CmsCollection{
 
 async function readItems(collection:CmsCollection){
   if(collection==='products'){
-    return getProducts({includeDeleted:true});
+    return getProducts({includeDeleted:true,strict:true});
   }
-  if(collection==='productCategories')return readCollection<Record<string,unknown>[]>(collection,DEFAULT_PRODUCT_CATEGORIES);
-  return readCollection<Record<string,unknown>[]>(collection,[]);
+  if(collection==='productCategories')return readCollection<Record<string,unknown>[]>(collection,DEFAULT_PRODUCT_CATEGORIES,{strict:true});
+  return readCollection<Record<string,unknown>[]>(collection,[],{strict:true});
 }
 
 async function defaultMediaItem(collection:'factory'|'cases'){
@@ -104,7 +104,7 @@ export async function GET(_:NextRequest,{params}:{params:Promise<{collection:str
     const items=collection==='homeShipments'?await getHomeShipmentSlots():await adminItems(collection);
     return NextResponse.json(items,{headers:{'Cache-Control':'no-store'}});
   }
-  catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Unauthorized'},{status:401});}
+  catch(error){return NextResponse.json({success:false,error:error instanceof Error?error.message:'Request failed'},{status:error instanceof Error&&error.message==='Unauthorized'?401:503});}
 }
 
 export async function POST(request:NextRequest,{params}:{params:Promise<{collection:string}>}){
@@ -139,6 +139,11 @@ export async function PUT(request:NextRequest,{params}:{params:Promise<{collecti
       const isDefaultMedia=(collection==='factory'||collection==='cases')&&String(item.id)===`${collection==='factory'?'factory':'cases'}-default-media`;
       if(collection!=='homeShipments'&&!isDefaultMedia)return NextResponse.json({success:false,error:'Item not found.'},{status:404});
       items.unshift(item);
+    }else if(collection==='inquiries'){
+      // Customer-submitted information is immutable in the follow-up editor.
+      const input=item;
+      items[index]={...items[index],status:input.status,followUpNotes:input.followUpNotes??items[index].followUpNotes,nextAction:input.nextAction??items[index].nextAction,updatedAt:nowIso()};
+      Object.assign(item,items[index]);
     }else items[index]=item;
     await writeCollection(collection,items);
     return NextResponse.json({success:true,item});
@@ -155,6 +160,16 @@ export async function DELETE(request:NextRequest,{params}:{params:Promise<{colle
       return NextResponse.json({success:true,item,message:`${item.model} moved to Trash.`});
     }
     const items=await readItems(collection);
+    if(collection==='media'){
+      const asset=items.find(item=>item.id===id) as Record<string,unknown>|undefined;
+      const urls=[asset?.url,asset?.src].filter((value):value is string=>typeof value==='string'&&!!value);
+      for(const key of ['products','factory','cases','shipping','blog','homeShipments'] as CmsCollection[]){
+        const references=await readItems(key);
+        if(urls.some(url=>JSON.stringify(references).includes(url)))throw new Error('素材正在被网站使用，请先移除引用 / This media is in use.');
+      }
+      const base=await getBaseMedia();
+      if(urls.some(url=>JSON.stringify(base).includes(url)))throw new Error('素材被网站默认内容使用 / Media is referenced by default content.');
+    }
     if(collection==='productCategories'){
       const products=await readItems('products');
       if(products.some(product=>String(product.category)===id))throw new Error('This category is still used by a product. Move those products first.');

@@ -64,19 +64,21 @@ async function writeLocal<T>(collection:CmsCollection,data:T){
   await rename(temporary,file);
 }
 
-export async function readCollection<T>(collection:CmsCollection,fallback:T):Promise<T>{
+export async function readCollection<T>(collection:CmsCollection,fallback:T,options:{strict?:boolean}={}):Promise<T>{
   if(databaseConfigured()){
     try{
-      await ensureSchema();
+      if(!options.strict)await ensureSchema();
       const rows=await sql()`SELECT value FROM cms_store WHERE key=${collection} LIMIT 1`;
       if(rows[0]?.value)return rows[0].value as T;
       return fallback;
     }catch{
+      if(options.strict)throw new Error('数据读取失败，请检查数据库连接后重试 / Database unavailable. No fallback data was used.');
       return fallback;
     }
   }
   if(supabaseConfigured()){
     const {data,error}=await supabase().from('cms_store').select('value').eq('key',collection).maybeSingle();
+    if(error&&options.strict)throw new Error('Database unavailable. Please retry.');
     if(!error&&data?.value)return data.value as T;
   }
   return readLocal(collection,fallback);
