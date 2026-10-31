@@ -1,6 +1,7 @@
 'use client';
 
 import { FormEvent, useState } from 'react';
+import Link from 'next/link';
 import type { TrackingShipment, ShipmentMilestone } from '@/lib/shipment-tracking';
 
 type Editor = Omit<TrackingShipment, 'source' | 'updatedAt' | 'milestones' | 'containerNumbers'> & {
@@ -102,7 +103,7 @@ export function TrackingAdmin() {
   </div>;
   return <div className="mx-auto max-w-7xl">
     <div className="flex flex-wrap items-center justify-between gap-4">
-      <div><h1 className="text-3xl font-black">Shipment tracking manager</h1><p className="mt-2 text-gray-600">Manually maintained records · Public lookup at <a className="underline" href="/track">/track</a></p></div>
+      <div><h1 className="text-3xl font-black">Shipment tracking manager</h1><p className="mt-2 text-gray-600">Manually maintained records · Public lookup at <Link className="underline" href="/track">/track</Link></p></div>
       <button onClick={() => {setEditor({...blank});setMessage('');setError('');}} className="rounded-xl bg-ink px-5 py-3 font-bold text-white">+ New shipment</button>
     </div>
     {error && <p role="alert" className="my-4 rounded-xl bg-red-50 p-4 text-red-700">{error}</p>}
