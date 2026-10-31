@@ -67,7 +67,8 @@ async function writeLocal<T>(collection:CmsCollection,data:T){
 export async function readCollection<T>(collection:CmsCollection,fallback:T):Promise<T>{
   if(databaseConfigured()){
     try{
-      await ensureSchema();
+      // Public reads must not run CREATE TABLE on every cold server instance.
+      // Schema initialization remains in explicit write/upload operations.
       const rows=await sql()`SELECT value FROM cms_store WHERE key=${collection} LIMIT 1`;
       if(rows[0]?.value)return rows[0].value as T;
       return fallback;

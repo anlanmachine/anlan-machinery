@@ -2,12 +2,15 @@ import {normalizeProductCategory,type CatalogCategory} from './catalog-config';
 import {slugify} from './cms-store';
 import {getProducts} from './product-store';
 import type {ProductRecord} from './product-types';
+import {cache} from 'react';
 
 export type CatalogProduct=ProductRecord;
 
-export async function getCatalog():Promise<CatalogProduct[]>{
+// Request-local only: metadata and page rendering share one read, while the next
+// request (including one after an admin edit) always sees current data.
+export const getCatalog=cache(async ():Promise<CatalogProduct[]>=>{
   return getProducts({publishedOnly:true});
-}
+});
 export async function getCategoryProducts(category:CatalogCategory){
   const products=await getCatalog();
   const normalized=normalizeProductCategory(String(category))||category;
@@ -27,7 +30,7 @@ export function productDescription(product:CatalogProduct){
   return text;
 }
 export function productSpecifications(product:CatalogProduct){
-  const specs:Record<string,string>=typeof product.specifications==='string'?Object.fromEntries(product.specifications.split('\n').map(line=>{const index=line.indexOf(':');return index>0?[line.slice(0,index).trim(),line.slice(index+1).trim()]:['',''];}).filter(([key,value])=>key&&value)):product.specifications||{};
+  const specs:Record<string,string>=typeof product.specifications==='string'?Object.fromEntries(product.specifications.split('\n').map(line=>{const index=line.indexOf(':');return index>0?[line.slice(0,index).trim(),line.slice(index+1).trim()]:['',''];}).filter(([key,value])=>key&&value)):{...product.specifications};
   const optionalSpecs:Array<[string,string|undefined]>=[['Engine',product.engine],['Operating Weight',product.operatingWeight],['Bucket Capacity',product.bucketCapacity],['Rated Power',product.ratedPower],['Dimension',product.dimension],['FOB Price',product.fobPrice],['MOQ',product.moq],['Delivery Time',product.deliveryTime]];
   for(const [key,value] of optionalSpecs)if(value&&!specs[key])specs[key]=value;
   return Object.entries(specs).filter(([key,value])=>!['Source','Image Source','Verification Status'].includes(key)&&!mojibake.test(`${key}${value}`));
