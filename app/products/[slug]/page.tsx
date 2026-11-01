@@ -20,8 +20,10 @@ export default async function Detail({params}:{params:Promise<{slug:string}>}){
   const {slug}=await params;
   const product=(await getCatalog()).find(item=>productPath(item)===slug||productSlug(item.model)===slug);
   if(!product)notFound();
-  const customCategory=(await getSiteCategories()).find(item=>item.id===product.category);
-  const fallbackCategory=categoryForProduct(product.category);
+  const categoryId=product.category==='productcategories-item'&&product.subCategory==='skid-steer-loader'
+    ? 'skid-steer' : product.category;
+  const customCategory=(await getSiteCategories()).find(item=>item.id===categoryId);
+  const fallbackCategory=categoryForProduct(categoryId);
   const category=customCategory
     ? {label:customCategory.label,path:customCategory.path}
     : {label:fallbackCategory.label,path:fallbackCategory.path?`/products/${fallbackCategory.path}`:'/products'};
