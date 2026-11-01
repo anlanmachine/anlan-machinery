@@ -44,7 +44,14 @@ export function AdminDashboard(){
     return matchesQuery&&matchesStatus;
   }),[items,query,active,productFilter]);
   const stats={products:(data.products||[]).length,cases:(data.cases||[]).length,blog:(data.blog||[]).length,media:(data.media||[]).length,updated:[...Object.values(data).flat()].map(item=>item.updatedAt||item.createdAt).filter(Boolean).sort().pop()||'Not yet'};
-  const categoryOptions=(data.productCategories||[]).map(item=>({value:String(item.id),label:String(item.label||item.id),subCategory:String(item.subCategory||item.id)}));
+  const categoryOptions=(data.productCategories||[]).map(item=>{
+    const original=String(item.id||'');
+    const label=String(item.label||'').trim();
+    const value=/^productcategories-item(?:-\\d+)?$/.test(original)
+      ? label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')
+      : original;
+    return {value,label:label||original,subCategory:String(item.subCategory||value)};
+  }).filter(item=>item.value&&item.label);
   async function save(itemToSave:Item|null|undefined=draft,successMessage='Saved successfully.'){
     if(!itemToSave||active==='dashboard')return;
     setBusy(true);setMessage('');
@@ -99,7 +106,7 @@ export function AdminDashboard(){
         {active==='dashboard'?<Dashboard stats={stats}/>:<div className="mt-5 grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
           <div className="rounded-3xl bg-white p-5 shadow-sm">
             <div className="relative"><Search className="absolute left-3 top-3.5 text-gray-400" size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search model, title, country, category..." className="w-full rounded-xl border border-black/10 py-3 pl-10 pr-4 outline-none focus:border-black"/></div>{active==='products'&&<div className="mt-3 flex flex-wrap gap-2">{['All','Published','Draft','Archived','Trash'].map(status=><button type="button" key={status} onClick={()=>setProductFilter(status)} className={`rounded-full px-3 py-1.5 text-xs font-black ${productFilter===status?'bg-ink text-white':'bg-sand text-gray-600'}`}>{status}</button>)}</div>}
-            <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading latest content...</p>:filtered.length===0?<p className="p-6 text-center text-sm text-gray-500">No matching items yet. Use Add New to create one.</p>:filtered.map(item=><button key={item.id||item.url||JSON.stringify(item).slice(0,30)} onClick={()=>setDraft({...item})} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left transition hover:bg-gray-50 ${draft?.id===item.id?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
+            <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading latest content...</p>:filtered.length===0?<p className="p-6 text-center text-sm text-gray-500">No matching items yet. Use Add New to create one.</p>:filtered.map(item=><button key={item.id||item.url||JSON.stringify(item).slice(0,30)} onClick={()=>setDraft({...item})} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left transition hover:bg-gray-50 ${draft?.id===item.id?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.label||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
           </div>
           <Editor active={active} draft={draft} setDraft={setDraft} save={save} remove={remove} permanentlyRemoveProduct={permanentlyRemoveProduct} busy={busy} categoryOptions={categoryOptions}/>
         </div>}
@@ -177,7 +184,7 @@ function ProductVersionHistory({productId,onRestored}:{productId:string;onRestor
 }
 
 function CategoryFields({draft,setDraft}:{draft:Item;setDraft:(item:Item)=>void}){
-  return <div className="mt-6 space-y-4"><p className="rounded-xl bg-sand p-4 text-sm text-gray-600">Add a category once and it will appear in the product editor. Category ID cannot be changed after saving, so existing products remain correctly grouped.</p>{!draft.id?<Input field="id" draft={draft} setDraft={setDraft}/>:<p className="text-sm font-bold">Category ID: <span className="font-mono text-gray-500">{draft.id}</span></p>}<Input field="label" draft={draft} setDraft={setDraft}/><Input field="subCategory" draft={draft} setDraft={setDraft}/></div>;
+  return <div className="mt-6 space-y-4"><p className="rounded-xl bg-sand p-4 text-sm text-gray-600">Create a category using a clear label, such as Skid Steer. Its ID will be generated from the label. Public navigation is updated automatically. Existing legacy IDs are preserved until safely repaired.</p>{!draft.id?<Input field="id" draft={draft} setDraft={setDraft}/>:<p className="text-sm font-bold">Category ID: <span className="font-mono text-gray-500">{draft.id}</span></p>}<Input field="label" draft={draft} setDraft={setDraft}/><Input field="subCategory" draft={draft} setDraft={setDraft}/></div>;
 }
 
 function HomeShipmentFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
