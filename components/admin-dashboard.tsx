@@ -47,7 +47,7 @@ export function AdminDashboard(){
   const categoryOptions=(data.productCategories||[]).map(item=>{
     const original=String(item.id||'');
     const label=String(item.label||'').trim();
-    const value=/^productcategories-item(?:-\\d+)?$/.test(original)
+    const value=/^productcategories-item(?:-\d+)?$/.test(original)
       ? label.toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')
       : original;
     return {value,label:label||original,subCategory:String(item.subCategory||value)};
