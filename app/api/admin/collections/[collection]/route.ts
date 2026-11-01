@@ -168,6 +168,8 @@ export async function DELETE(request:NextRequest,{params}:{params:Promise<{colle
     }
     const items=await readItems(collection);
     if(collection==='productCategories'){
+      if(items.filter(item=>String(item.id)===id).length>1)
+        throw new Error('Multiple legacy categories share this ID. Deletion blocked to protect other categories.');
       const products=await readItems('products');
       if(products.some(product=>String(product.category)===id))throw new Error('This category is still used by a product. Move those products first.');
     }
