@@ -11,8 +11,12 @@ export async function getCatalog():Promise<CatalogProduct[]>{
 export async function getCategoryProducts(category:CatalogCategory){
   const products=await getCatalog();
   const normalized=normalizeProductCategory(String(category))||category;
+  if(normalized==='skid-steer')return products.filter(product=>
+    (product.category==='skid-steer'||product.category==='loader'||product.category==='productcategories-item')&&
+    product.subCategory==='skid-steer-loader'
+  );
   if(normalized==='backhoe-loader')return products.filter(product=>product.category==='backhoe-loader'||product.subCategory==='backhoe-loader'||/backhoe/i.test(product.name));
-  if(normalized==='loader')return products.filter(product=>product.category==='loader'&&product.subCategory!=='backhoe-loader');
+  if(normalized==='loader')return products.filter(product=>product.category==='loader'&&product.subCategory!=='backhoe-loader'&&product.subCategory!=='skid-steer-loader');
   return products.filter(product=>product.category===normalized);
 }
 export const productSlug=(modelOrSlug:string)=>slugify(modelOrSlug);

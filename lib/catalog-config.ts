@@ -1,6 +1,7 @@
 export const CATEGORY_LINKS=[
  {key:'excavator',path:'excavator',label:'Excavator',title:'XCMG Excavators'},
  {key:'loader',path:'loader',label:'Loader',title:'XCMG Loaders'},
+ {key:'skid-steer',path:'skid-steer',label:'Skid Steer',title:'Skid Steer Loaders'},
  {key:'backhoe-loader',path:'backhoe-loader',label:'Backhoe Loader',title:'XCMG Backhoe Loaders'},
  {key:'roller',path:'roller',label:'Roller',title:'XCMG Road Rollers'},
  {key:'forklift',path:'forklift',label:'Forklift',title:'Forklift Sourcing'},
@@ -16,6 +17,7 @@ export const categoryForProduct=(category:string)=>CATEGORY_LINKS.find(item=>ite
 export const PRODUCT_CATEGORY_OPTIONS=[
  {value:'excavator',label:'Excavator',subCategory:'crawler-excavator'},
  {value:'loader',label:'Loader',subCategory:'wheel-loader'},
+ {value:'skid-steer',label:'Skid Steer',subCategory:'skid-steer-loader'},
  {value:'backhoe-loader',label:'Backhoe Loader',subCategory:'backhoe-loader'},
  {value:'roller',label:'Road Roller',subCategory:'single-drum-roller'},
  {value:'forklift',label:'Forklift',subCategory:'forklift'},
@@ -27,12 +29,12 @@ export const PRODUCT_CATEGORY_OPTIONS=[
 export const DEFAULT_PRODUCT_CATEGORIES=PRODUCT_CATEGORY_OPTIONS.map(option=>({id:option.value,label:option.label,subCategory:option.subCategory}));
 
 const CATEGORY_ALIASES:Record<string,string>={
- excavator:'excavator',loader:'loader','backhoe-loader':'backhoe-loader',backhoe:'backhoe-loader',
+ excavator:'excavator',loader:'loader','skid-steer':'skid-steer','skid-steer-loader':'skid-steer','backhoe-loader':'backhoe-loader',backhoe:'backhoe-loader',
  'road-roller':'roller',roller:'roller',forklift:'forklift','dump-truck':'dump-truck',
  'motor-grader':'grader',grader:'grader',crane:'crane','concrete-mixer':'mixer',mixer:'mixer'
 };
 const VALID_SUBCATEGORIES:Record<string,string[]>={
- excavator:['crawler-excavator','wheel-excavator','mini-excavator'],loader:['wheel-loader','skid-steer-loader'],
+ excavator:['crawler-excavator','wheel-excavator','mini-excavator'],loader:['wheel-loader','skid-steer-loader'],'skid-steer':['skid-steer-loader'],
  'backhoe-loader':['backhoe-loader'],roller:['single-drum-roller','pneumatic-roller'],forklift:['forklift'],
  'dump-truck':['dump-truck'],grader:['motor-grader'],crane:['crane'],mixer:['self-loading-concrete-mixer']
 };

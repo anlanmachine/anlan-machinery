@@ -19,16 +19,27 @@ const resources=[['Media Center','/media'],['Gallery','/gallery'],['Downloads','
 
 export function Header(){
   const [open,setOpen]=useState(false);
+  const [categories,setCategories]=useState<{id:string;label:string;path:string}[]>(
+    CATEGORY_LINKS.map(item=>({id:item.key,label:item.label,path:`/products/${item.path}`}))
+  );
+  useEffect(()=>{
+    let active=true;
+    fetch('/api/categories',{cache:'no-store'})
+      .then(response=>{if(!response.ok)throw new Error('Categories unavailable');return response.json();})
+      .then(items=>{if(active&&Array.isArray(items))setCategories(items);})
+      .catch(()=>{/* Keep built-in navigation available on temporary failures. */});
+    return ()=>{active=false;};
+  },[]);
   return <header className="fixed inset-x-0 top-0 z-50 border-b border-white/10 bg-ink/95 text-white backdrop-blur">
     <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-5">
       <Link href="/" className="flex items-center gap-3"><span className="grid size-10 place-items-center rounded-xl bg-lime font-black text-ink">AM</span><span className="text-lg font-extrabold tracking-tight">AOLAN <span className="text-lime">MACHINERY</span></span></Link>
-      <nav className="hidden items-center gap-5 text-sm font-semibold xl:flex"><Dropdown label="Products" href="/products/excavator" links={CATEGORY_LINKS.map(item=>[item.label,`/products/${item.path}`])}/>{main.map(([name,href])=><Link key={name} href={href} className="hover:text-lime">{name}</Link>)}<Dropdown label="Resources" href="/media" links={resources}/></nav>
+      <nav className="hidden items-center gap-5 text-sm font-semibold xl:flex"><Dropdown label="Products" href="/products/excavator" links={categories.map(item=>[item.label,item.path])}/>{main.map(([name,href])=><Link key={name} href={href} className="hover:text-lime">{name}</Link>)}<Dropdown label="Resources" href="/media" links={resources}/></nav>
       <div className="hidden xl:block"><WhatsApp label="Get a quote"/></div>
       <button onClick={()=>setOpen(!open)} className="xl:hidden" aria-label="Menu">{open?<X/>:<Menu/>}</button>
     </div>
     {open&&<nav className="max-h-[calc(100vh-5rem)] overflow-y-auto border-t border-white/10 bg-ink p-5 xl:hidden">
       <p className="pb-2 text-xs font-black uppercase tracking-widest text-lime">Products</p>
-      {CATEGORY_LINKS.map(item=><Link onClick={()=>setOpen(false)} key={item.key} href={`/products/${item.path}`} className="block border-b border-white/10 py-3 pl-3">{item.label}</Link>)}
+      {categories.map(item=><Link onClick={()=>setOpen(false)} key={item.id} href={item.path} className="block border-b border-white/10 py-3 pl-3">{item.label}</Link>)}
       {[...main,...resources].map(([name,href])=><Link onClick={()=>setOpen(false)} key={name} href={href} className="block border-b border-white/10 py-3">{name}</Link>)}
       <div className="mt-5 grid gap-3"><WhatsApp className="w-full"/><EmailLink className="text-center text-sm font-bold text-white/80"/></div>
     </nav>}
