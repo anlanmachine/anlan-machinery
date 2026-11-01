@@ -45,14 +45,17 @@ async function adminItems(collection:CmsCollection){
 function normalize(collection:CmsCollection,input:Record<string,unknown>){
   const item={...input} as Record<string,unknown>;
   const title=String(item.title||item.name||item.model||item.caseTitle||'item');
-  if(!item.id)item.id=`${collection}-${slugify(String(item.slug||title))||Date.now()}`;
   if(collection==='productCategories'){
-    const id=slugify(String(item.id||item.label||''));
-    if(!id)throw new Error('Category name is required.');
+    const label=String(item.label||'').trim();
+    if(!label)throw new Error('Category name is required.');
+    // Derive the ID from the label BEFORE generating generic CMS IDs.
+    // Existing IDs are kept for edits, including legacy records.
+    const id=slugify(String(item.id||label));
+    if(!id)throw new Error('Category ID is invalid.');
     item.id=id;
-    item.label=String(item.label||id).trim();
+    item.label=label;
     item.subCategory=slugify(String(item.subCategory||id))||id;
-  }
+  }else if(!item.id)item.id=`${collection}-${slugify(String(item.slug||title))||Date.now()}`;
   if(collection==='products'){
     const brand=String(item.brand||'XCMG').trim();
     const model=String(item.model||'').trim();
@@ -116,6 +119,10 @@ export async function POST(request:NextRequest,{params}:{params:Promise<{collect
       return NextResponse.json({success:true,item});
     }
     const items=(await readItems(collection)) as Record<string,unknown>[],item=normalize(collection,await request.json());
+    if(collection==='productCategories'&&items.some(existing=>
+      String(existing.id).toLowerCase()===String(item.id).toLowerCase() ||
+      String(existing.label||'').trim().toLowerCase()===String(item.label).toLowerCase()
+    ))throw new Error('A category with this ID or label already exists.');
     items.unshift(item);
     await writeCollection(collection,items);
     return NextResponse.json({success:true,item});
@@ -135,6 +142,11 @@ export async function PUT(request:NextRequest,{params}:{params:Promise<{collecti
     }
     const items=(await readItems(collection)) as Record<string,unknown>[],item=normalize(collection,await request.json());
     const index=items.findIndex(existing=>existing.id===item.id);
+    if(collection==='productCategories'){
+      if(items.filter(existing=>existing.id===item.id).length>1)throw new Error('Legacy duplicate category IDs detected. Repair IDs before editing.');
+      if(items.some((existing,i)=>i!==index&&String(existing.label||'').trim().toLowerCase()===String(item.label).toLowerCase()))
+        throw new Error('Another category already uses this label.');
+    }
     if(index<0){
       const isDefaultMedia=(collection==='factory'||collection==='cases')&&String(item.id)===`${collection==='factory'?'factory':'cases'}-default-media`;
       if(collection!=='homeShipments'&&!isDefaultMedia)return NextResponse.json({success:false,error:'Item not found.'},{status:404});
