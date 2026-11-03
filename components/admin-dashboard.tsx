@@ -26,7 +26,7 @@ const emptyByModule:Record<string,Item>={
 };
 
 export function AdminDashboard(){
-  const [active,setActive]=useState<ModuleKey>('dashboard'),[data,setData]=useState<Record<string,Item[]>>({}),[draft,setDraft]=useState<Item|null>(null),[query,setQuery]=useState(''),[productFilter,setProductFilter]=useState('All'),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[messageType,setMessageType]=useState<'success'|'error'>('success');
+  const [active,setActive]=useState<ModuleKey>('dashboard'),[data,setData]=useState<Record<string,Item[]>>({}),[draft,setDraft]=useState<Item|null>(null),[creating,setCreating]=useState(false),[query,setQuery]=useState(''),[productFilter,setProductFilter]=useState('All'),[busy,setBusy]=useState(false),[message,setMessage]=useState(''),[messageType,setMessageType]=useState<'success'|'error'>('success');
   useEffect(()=>{void loadAll();},[]);
   async function loadAll(){
     setBusy(true);
@@ -56,11 +56,13 @@ export function AdminDashboard(){
     if(!itemToSave||active==='dashboard')return;
     setBusy(true);setMessage('');
     try{
-      const method=itemToSave.id?'PUT':'POST';
+      // Creation is an explicit UI state: a user may enter a custom ID for a new item.
+      // A non-empty ID alone does not mean the record already exists.
+      const method=creating?'POST':itemToSave.id?'PUT':'POST';
       const response=await fetch(`/api/admin/collections/${active}`,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(itemToSave)});
       const result=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(result.error||'Save failed.');
-      setDraft(result.item);setMessageType('success');setMessage(successMessage);await loadAll();
+      setDraft(result.item);setCreating(false);setMessageType('success');setMessage(successMessage);await loadAll();
     }catch(caught){
       setMessageType('error');setMessage(caught instanceof Error?caught.message:'Save failed. Please try again.');
     }finally{setBusy(false);}
@@ -94,19 +96,19 @@ export function AdminDashboard(){
     <div className="mx-auto grid max-w-[1600px] gap-5 px-4 py-6 lg:grid-cols-[260px_1fr]">
       <aside className="rounded-3xl bg-ink p-4 text-white lg:sticky lg:top-24 lg:h-[calc(100vh-7rem)]">
         <div className="px-3 py-4"><b className="text-xl">AOLAN Admin</b><p className="mt-1 text-xs text-white/50">Content management</p></div>
-        <nav className="mt-3 space-y-1">{modules.map(item=>{const Icon=item.icon;return <button key={item.key} onClick={()=>{setActive(item.key);setDraft(null);setMessage('');}} className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-bold ${active===item.key?'bg-lime text-ink':'text-white/75 hover:bg-white/10'}`}><Icon size={18}/>{item.label}</button>})}</nav>
+        <nav className="mt-3 space-y-1">{modules.map(item=>{const Icon=item.icon;return <button key={item.key} onClick={()=>{setActive(item.key);setDraft(null);setCreating(false);setMessage('');}} className={`flex w-full items-center gap-3 rounded-2xl px-4 py-3 text-left font-bold ${active===item.key?'bg-lime text-ink':'text-white/75 hover:bg-white/10'}`}><Icon size={18}/>{item.label}</button>})}</nav>
         <div className="mt-6 space-y-2 px-3"><Link href="/admin/backups" className="flex items-center gap-2 text-sm font-bold text-white/70"><History size={16}/>Catalog backups</Link><Link href="/" target="_blank" className="flex items-center gap-2 text-sm font-bold text-white/70"><Eye size={16}/>Preview website</Link><button onClick={logout} className="flex items-center gap-2 text-sm font-bold text-white/70"><LogOut size={16}/>Logout</button></div>
       </aside>
       <section className="min-w-0">
         <div className="flex flex-wrap items-end justify-between gap-4 rounded-3xl bg-white p-6 shadow-sm">
           <div><p className="eyebrow">Admin panel</p><h1 className="mt-2 text-3xl font-black">{modules.find(item=>item.key===active)?.label}</h1><p className="mt-1 text-sm text-gray-500">Edit content, upload media, publish to storefront.</p></div>
-          {active!=='dashboard'&&active!=='inquiries'&&active!=='homeShipments'&&<button onClick={()=>setDraft({...emptyByModule[active]})} className="inline-flex items-center gap-2 rounded-full bg-lime px-5 py-3 font-black"><Plus size={18}/>Add New</button>}
+          {active!=='dashboard'&&active!=='inquiries'&&active!=='homeShipments'&&<button onClick={()=>{setDraft({...emptyByModule[active]});setCreating(true);setMessage('');}} className="inline-flex items-center gap-2 rounded-full bg-lime px-5 py-3 font-black"><Plus size={18}/>Add New</button>}
         </div>
         {message&&<p role="status" className={`mt-4 rounded-2xl px-5 py-3 text-sm font-bold ${messageType==='error'?'bg-red-50 text-red-700':'bg-green-50 text-green-800'}`}>{message}</p>}
         {active==='dashboard'?<Dashboard stats={stats}/>:<div className="mt-5 grid gap-5 xl:grid-cols-[.9fr_1.1fr]">
           <div className="rounded-3xl bg-white p-5 shadow-sm">
             <div className="relative"><Search className="absolute left-3 top-3.5 text-gray-400" size={18}/><input value={query} onChange={e=>setQuery(e.target.value)} placeholder="Search model, title, country, category..." className="w-full rounded-xl border border-black/10 py-3 pl-10 pr-4 outline-none focus:border-black"/></div>{active==='products'&&<div className="mt-3 flex flex-wrap gap-2">{['All','Published','Draft','Archived','Trash'].map(status=><button type="button" key={status} onClick={()=>setProductFilter(status)} className={`rounded-full px-3 py-1.5 text-xs font-black ${productFilter===status?'bg-ink text-white':'bg-sand text-gray-600'}`}>{status}</button>)}</div>}
-            <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading latest content...</p>:filtered.length===0?<p className="p-6 text-center text-sm text-gray-500">No matching items yet. Use Add New to create one.</p>:filtered.map((item,index)=><button key={`${item.id||item.url||'item'}-${item.label||item.title||item.model||index}-${index}`} onClick={()=>setDraft({...item})} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left transition hover:bg-gray-50 ${draft?.id===item.id&&draft?.label===item.label?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.label||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
+            <div className="mt-4 max-h-[70vh] overflow-auto rounded-2xl border border-black/5">{busy&&!filtered.length?<p className="p-5 text-gray-500">Loading latest content...</p>:filtered.length===0?<p className="p-6 text-center text-sm text-gray-500">No matching items yet. Use Add New to create one.</p>:filtered.map((item,index)=><button key={`${item.id||item.url||'item'}-${item.label||item.title||item.model||index}-${index}`} onClick={()=>{setDraft({...item});setCreating(false);setMessage('');}} className={`flex w-full items-center justify-between gap-4 border-b border-black/5 p-4 text-left transition hover:bg-gray-50 ${draft?.id===item.id&&draft?.label===item.label?'bg-lime/30':''}`}><span><b className="block">{item.model||item.title||item.label||item.name||item.email||'Untitled'}</b><small className="text-gray-500">{item.category||item.country||item.destinationCountry||item.status||item.type}</small></span><Edit3 size={16}/></button>)}</div>
           </div>
           <Editor active={active} draft={draft} setDraft={setDraft} save={save} remove={remove} permanentlyRemoveProduct={permanentlyRemoveProduct} busy={busy} categoryOptions={categoryOptions}/>
         </div>}
@@ -184,7 +186,7 @@ function ProductVersionHistory({productId,onRestored}:{productId:string;onRestor
 }
 
 function CategoryFields({draft,setDraft}:{draft:Item;setDraft:(item:Item)=>void}){
-  return <div className="mt-6 space-y-4"><p className="rounded-xl bg-sand p-4 text-sm text-gray-600">Create a category using a clear label, such as Skid Steer. Its ID will be generated from the label. Public navigation is updated automatically. Existing legacy IDs are preserved until safely repaired.</p>{!draft.id?<Input field="id" draft={draft} setDraft={setDraft}/>:<p className="text-sm font-bold">Category ID: <span className="font-mono text-gray-500">{draft.id}</span></p>}<Input field="label" draft={draft} setDraft={setDraft}/><Input field="subCategory" draft={draft} setDraft={setDraft}/></div>;
+  return <div className="mt-6 space-y-4"><p className="rounded-xl bg-sand p-4 text-sm text-gray-600">Create a category using a clear label, such as Skid Steer. Its ID will be generated from the label. Public navigation is updated automatically. Existing legacy IDs are preserved until safely repaired.</p>{!draft.id?<p className="rounded-xl bg-white px-4 py-3 text-sm font-bold">Category ID (automatic): <span className="font-mono text-gray-500">{String(draft.label||'').trim().toLowerCase().replace(/[^a-z0-9]+/g,'-').replace(/(^-|-$)/g,'')||'Enter a category name first'}</span></p>:<p className="text-sm font-bold">Category ID: <span className="font-mono text-gray-500">{draft.id}</span></p>}<Input field="label" draft={draft} setDraft={setDraft}/><Input field="subCategory" draft={draft} setDraft={setDraft}/></div>;
 }
 
 function HomeShipmentFields({draft,setDraft,save}:{draft:Item;setDraft:(item:Item)=>void;save:(itemToSave?:Item|null,successMessage?:string)=>Promise<void>}){
